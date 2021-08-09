@@ -159,18 +159,23 @@ module.exports = conn = async (conn, mek) => {
         premium.expiredCheck(dbpremium)
 
         //MESS
-		mess = {
-			wait: 'Otewe',
-			success: 'Berhasil!',
-			wrongFormat: 'Format salah, coba liat lagi di menu',
-			error: {
-				stick: 'bukan sticker itu:v',
-				Iv: 'Linknya error:v'
-			},
-			only: {
-				group: 'Khusus grup ngab',
-			}
-		}
+		const mess = {
+            wait: '⌛ Sedang di Prosess ⌛',
+            success: '✔️ Berhasil ✔️',
+            error: {
+                stick: '❌ Gagal, terjadi kesalahan saat mengkonversi gambar ke sticker ❌',
+                Iv: '❌ Link tidak valid ❌'
+            },
+            only: {
+                group: '❌ Perintah ini hanya bisa di gunakan dalam group! ❌',
+                ownerGroup: '❌ Perintah ini hanya bisa di gunakan oleh owner group! ❌',
+                ownerBot: '❌ Perintah ini hanya bisa di gunakan oleh owner bot! ❌',
+                adminGroup: '❌ Perintah ini hanya bisa di gunakan oleh admin group! ❌',
+                adminBot: '❌ Perintah ini hanya bisa di gunakan oleh admin bot! ❌',
+                Botadmin: '❌ Perintah ini hanya bisa di gunakan ketika bot menjadi admin! ❌'
+            }
+        }
+
 		const isUrl = (url) => {
         return url.match(new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%.+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%+.~#?&/=]*)/, 'gi'))
         }
@@ -328,6 +333,8 @@ module.exports = conn = async (conn, mek) => {
 //========================================================================================================================//
 		colors = ['red', 'white', 'black', 'blue', 'yellow', 'green']
 		const isMedia = (type === 'imageMessage' || type === 'videoMessage')
+        const isImage = type === 'imageMessage'
+        const isVideo = type === 'videoMessage'
 		const isQuotedImage = type === 'extendedTextMessage' && content.includes('imageMessage')
 		const isQuotedVideo = type === 'extendedTextMessage' && content.includes('videoMessage')
 		const isQuotedAudio = type === 'extendedTextMessage' && content.includes('audioMessage')
@@ -490,6 +497,63 @@ Prefix : 「 MULTI-PREFIX 」
         ► _${prefix}sticktag_
         ► _${prefix}totag_`
             )
+            break
+        case 'bc':
+            if (!fromMe && !isOwner) return reply(mess.only.ownerBot)
+            if (args.length === 0) return reply(`Masukkan text`)
+            let chiit = await totalchat
+            if (isImage || isQuotedImage) {
+                let encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                let media = await conn.downloadMediaMessage(encmedia)
+                for (let i of chiit){
+                    conn.sendMessage(i.jid, media, image, {caption: q})
+                }
+                reply(`Sukses`)
+            } else if (isVideo || isQuotedVideo) {
+                let encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                let media = await conn.downloadMediaMessage(encmedia)
+                for (let i of chiit){
+                    conn.sendMessage(i.jid, media, video, {caption: q})
+                }
+                reply(`Sukses`)
+            } else {
+                for (let i of chiit){
+                    conn.sendMessage(i.jid, q, text)
+                }
+                reply(`Sukses`)
+            }
+            break
+        case 'add': 
+            if (!isGroup) return reply(mess.only.group)
+            // if (!isGroupAdmins) return reply(mess.only.adminGroup)
+            if (!isBotGroupAdmins) return reply(mess.only.Botadmin)
+            if (args.length < 1) return reply('yang mau di add jin ya? :v')
+            if (args[0].startsWith('08')) return reply('Gunakan kode negara mas')
+            try {
+                let num = `${args[0].replace(/ /g, '')}@s.whatsapp.net`
+                conn.groupAdd(from, [num])
+            } catch (error) {
+                console.log('error :', error)
+                reply('Gagal Menambahkan Target, mungkin karena di private')
+            }
+            break
+        case 'kick':
+            if (!isGroup) return reply(mess.only.group)
+            // if (!isGroupAdmins) return reply(mess.only.adminGroup)
+            if (!isBotGroupAdmins) return reply(mess.only.Botadmin)
+            if (mek.message.extendedTextMessage === undefined || mek.message.extendedTextMessage === null) return reply('Tag target yang ingin di tendang!')
+            mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid
+            if (mentioned.length > 1) {
+                teks = 'Perintah di terima, mengeluarkan :\n'
+                for (let _ of mentioned) {
+                    teks += `@${_.split('@')[0]}\n`
+                }
+                mentions(teks, mentioned, true)
+                conn.groupRemove(from, mentioned)
+            } else {
+                mentions(`Perintah di terima, mengeluarkan : @${mentioned[0].split('@')[0]}`, mentioned, true)
+                conn.groupRemove(from, mentioned)
+            }
             break
         case 'delvote':
                 if(!mek.key.remoteJid) return
