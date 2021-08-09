@@ -934,32 +934,35 @@ Prefix : 「 MULTI-PREFIX 」
                 }
                 break
         case 'upswteks':
-                if (!q) return fakestatus('Isi teksnya!')
-                conn.sendMessage('status@broadcast', `${q}`, extendedText)
-                fakegroup(`Sukses Up story wea teks ${q}`)
-                break
+            if (!fromMe && !isOwner) return reply('Fitur Khusus khusus Owner!!')
+            if (!q) return fakestatus('Isi teksnya!')
+            conn.sendMessage('status@broadcast', `${q}`, extendedText)
+            fakegroup(`Sukses Up story wea teks ${q}`)
+            break
         case 'upswimage':
-                if (isQuotedImage) {
+            if (!fromMe && !isOwner) return reply('Fitur Khusus Owner!!')
+            if (isQuotedImage) {
                 const swsw = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
                 cihcih = await conn.downloadMediaMessage(swsw)
                 conn.sendMessage('status@broadcast', cihcih, image, { caption: `${q}` })
                 bur = `Sukses Upload Story Image dengan Caption: ${q}`
                 conn.sendMessage(from, bur, text, { quoted: mek })
-                } else {
+            } else {
                 fakestatus('Reply gambarnya!')
-                }
-                break
+            }
+            break
         case 'upswvideo':
-                if (isQuotedVideo) {
+            if (!fromMe && !isOwner) return reply('Fitur Khusus Owner!!')
+            if (isQuotedVideo) {
                 const swsw = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
                 cihcih = await conn.downloadMediaMessage(swsw)
                 conn.sendMessage('status@broadcast', cihcih, video, { caption: `${q}` }) 
                 bur = `Sukses Upload Story Video dengan Caption: ${q}`
                 conn.sendMessage(from, bur, text, { quoted: mek })
-                } else {
+            } else {
                 fakestatus('reply videonya!')
-                }
-                break
+            }
+            break
         case 'fdeface':
                 ge = args.join('')           
                 var pe = ge.split("|")[0];
@@ -986,7 +989,7 @@ Prefix : 「 MULTI-PREFIX 」
                 conn.sendMessage(from, mat, MessageType.extendedText, anu)
                 break
         case 'public':
-                if (!mek.key.fromMe && !isOwner) return fakestatus('SELF-BOT')
+                if (!mek.key.fromMe && !isOwner) return fakestatus('Fitur Khusus Owner!!')
                 if (banChats === false) return
                 // var taged = ben.message.extendedTextMessage.contextInfo.mentionedJid[0]
                 setting.banChats = false
@@ -995,7 +998,7 @@ Prefix : 「 MULTI-PREFIX 」
                 fakestatus(`「 *PUBLIC-MODE* 」`)
                 break
         case 'self':
-                if (!mek.key.fromMe && !isOwner) return fakestatus('SELF-BOT')
+                if (!mek.key.fromMe && !isOwner) return fakestatus('Fitur Khusus Owner!!')
                 if (setting.banChats === true) return
                 setting.banChats = true
                 uptime = process.uptime()
@@ -1006,7 +1009,7 @@ Prefix : 「 MULTI-PREFIX 」
                 break
         case 'h':
         case 'hidetag':
-                if (!mek.key.fromMe) return fakestatus('SELF-BOT')
+                if (!mek.key.fromMe) return fakestatus('Fitur Khusus Owner!!')
                 if (!isGroup) return reply(mess.only.group)
                 var value = args.join(' ')
                 var group = await conn.groupMetadata(from)
@@ -1215,73 +1218,73 @@ Prefix : 「 MULTI-PREFIX 」
                 })
                 break
         case 'ytmp3':
-                if (args.length === 0) return reply(`Kirim perintah *${prefix}ytmp3 [linkYt]*`)
-                let isLinks = args[0].match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
-                if (!isLinks) return reply(mess.error.Iv)
-                    try {
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}ytmp3 [linkYt]*`)
+            let isLinks = args[0].match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
+            if (!isLinks) return reply(mess.error.Iv)
+                try {
                     reply(mess.wait)
                     yta(args[0])
                     .then((res) => {
-                    const { dl_link, thumb, title, filesizeF, filesize } = res
-                    axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
-                    .then((a) => {
-                    if (Number(filesize) >= 30000) return sendMediaURL(from, thumb, `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
-                    const captions = `*YTMP3*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
-                    sendMediaURL(from, thumb, captions)
-                    sendMediaURL(from, dl_link).catch(() => reply(mess.error.api))
+                        const { dl_link, thumb, title, filesizeF, filesize } = res
+                        axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
+                        .then((a) => {
+                            if (Number(filesize) >= 30000) return sendMediaURL(from, thumb, `*Data Berhasil Didapatkan!*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
+                            const captions = `*YTMP3*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
+                            sendMediaURL(from, thumb, captions)
+                            sendMediaURL(from, dl_link).catch(() => reply(mess.error.api))
+                        })
                     })
-                    })
-                    } catch (err) {
+                } catch (err) {
                     reply(mess.error.api)
-                    }
-                    break
+                }
+                break
         case 'image':
-                if (args.length < 1) return reply('Masukan teks!')
-                const gimg = args.join('');
-                reply(mess.wait)
-                gis(gimg, async (error, result) => {
+            if (args.length < 1) return reply('Masukan teks!')
+            const gimg = args.join('');
+            reply(mess.wait)
+            gis(gimg, async (error, result) => {
                 n = result
                 images = n[Math.floor(Math.random() * n.length)].url
                 conn.sendMessage(from,{url:images},image,{quoted:mek})
-                });
-                break
+            });
+            break
         case 'tiktok':
             if (!isUrl(args[0]) && !args[0].includes('tiktok.com')) return reply(mess.Iv)
             if (!q) return fakegroup('Linknya?')
             reply(mess.wait)
             hx.ttdownloader(`${args[0]}`)
-                .then(result => {
+            .then(result => {
                 const { wm, nowm, audio } = result
                 axios.get(`https://tinyurl.com/api-create.php?url=${nowm}`)
                 .then(async (a) => {
-                me = `*Link* : ${a.data}`
-            conn.sendMessage(from,{url:`${nowm}`},video,{mimetype:'video/mp4',quoted:mek,caption:me})
+                    me = `*Link* : ${a.data}`
+                    conn.sendMessage(from,{url:`${nowm}`},video,{mimetype:'video/mp4',quoted:mek,caption:me})
+                })
             })
-            })
-                .catch(e => console.log(e))
-                break
+            .catch(e => console.log(e))
+            break
         case 'tiktokaudio':
             if (!isUrl(args[0]) && !args[0].includes('tiktok.com')) return reply(mess.Iv)
             if (!q) return fakegroup('Linknya?')
             reply(mess.wait)
             hx.ttdownloader(`${args[0]}`)
-                .then(result => {
+            .then(result => {
                 const { audio} = result
                 sendMediaURL(from,audio,'')
-                })
-                .catch(e => console.log(e))
-                break
+            })
+            .catch(e => console.log(e))
+            break
         case 'brainly':
-                if (args.length < 1) return reply('Pertanyaan apa')
-                brien = args.join(' ')
-                brainly(`${brien}`).then(res => {
-                teks = '❉───────────────────────❉\n'
-                for (let Y of res.data) {
-                teks += `\n*「 _BRAINLY_ 」*\n\n*➸ Pertanyaan:* ${Y.pertanyaan}\n\n*➸ Jawaban:* ${Y.jawaban[0].text}\n❉──────────────────❉\n`
-                }
-                conn.sendMessage(from, teks, text,{quoted:mek,detectLinks: false})                        
-                })              
-                break
+            if (args.length < 1) return reply('Pertanyaan apa')
+            brien = args.join(' ')
+            brainly(`${brien}`).then(res => {
+            teks = '❉───────────────────────❉\n'
+            for (let Y of res.data) {
+            teks += `\n*「 _BRAINLY_ 」*\n\n*➸ Pertanyaan:* ${Y.pertanyaan}\n\n*➸ Jawaban:* ${Y.jawaban[0].text}\n❉──────────────────❉\n`
+            }
+            conn.sendMessage(from, teks, text,{quoted:mek,detectLinks: false})                        
+            })              
+            break
         case 'ig':
             if (!isUrl(args[0]) && !args[0].includes('instagram.com')) return reply(mess.Iv)
             if (!q) return fakegroup('Linknya?')
@@ -1329,7 +1332,8 @@ Prefix : 「 MULTI-PREFIX 」
                 })
                 break 
         case 'join':
-                try {
+            if (!fromMe && !isOwner) return reply('Fitur Khusus Owner!!')
+            try {
                 if (!isUrl(args[0]) && !args[0].includes('whatsapp.com')) return reply(mess.Iv)
                 hen = args[0]
                 if (!q) return fakestatus('Masukan link group')
@@ -1337,18 +1341,18 @@ Prefix : 「 MULTI-PREFIX 」
                 if (!codeInvite) return fakegroup ('pastikan link sudah benar!')
                 var response = await conn.acceptInvite(codeInvite)
                 fakestatus('SUKSES')
-                } catch {
+            } catch {
                 fakegroup('LINK ERROR!')
-                }
-                break
+            }
+            break
         case 'twitter':
-                if (!isUrl(args[0]) && !args[0].includes('twitter.com')) return reply(mess.Iv)
-                if (!q) return fakegroup('Linknya?')
-                ten = args[0]
-                var res = await hx.twitter(`${ten}`)
-                ren = `${g.HD}`
-                sendMediaURL(from,ren,'DONE')
-                break
+            if (!isUrl(args[0]) && !args[0].includes('twitter.com')) return reply(mess.Iv)
+            if (!q) return fakegroup('Linknya?')
+            ten = args[0]
+            var res = await hx.twitter(`${ten}`)
+            ren = `${g.HD}`
+            sendMediaURL(from,ren,'DONE')
+            break
         case 'verify':
             const nonye = sender
             let pporang = conn.getProfilePicture(nonye)
