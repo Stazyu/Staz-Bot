@@ -830,14 +830,15 @@ Prefix : 「 MULTI-PREFIX 」
             }
             break
         case 'fitnah':
-                if (args.length < 1) return reply(`Usage :\n${prefix}fitnah [@tag|pesan|balasanbot]]\n\nEx : \n${prefix}fitnah @tagmember|hai|hai juga`)
-                var gh = args.join('')
-                mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid
-                var replace = gh.split("|")[0];
-                var target = gh.split("|")[1];
-                var bot = gh.split("|")[2];
-                conn.sendMessage(from, `${bot}`, text, {quoted: { key: { fromMe: false, participant: `${mentioned}`, ...(from ? { remoteJid: from } : {}) }, message: { conversation: `${target}` }}})
-                break
+            if (!isPremium && !isOwner) return 
+            if (args.length < 1) return reply(`Usage :\n${prefix}fitnah [@tag|pesan|balasanbot]]\n\nEx : \n${prefix}fitnah @tagmember|hai|hai juga`)
+            var gh = args.join('')
+            mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid
+            var replace = gh.split("|")[0];
+            var target = gh.split("|")[1];
+            var bot = gh.split("|")[2];
+            conn.sendMessage(from, `${bot}`, text, {quoted: { key: { fromMe: false, participant: `${mentioned}`, ...(from ? { remoteJid: from } : {}) }, message: { conversation: `${target}` }}})
+            break
         case 'settarget':
                 if(!q) return reply(`${prefix}settarget 628xxxxx`)
                 targetpc = args[0]
