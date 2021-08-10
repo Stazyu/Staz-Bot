@@ -1652,8 +1652,8 @@ Prefix : 「 MULTI-PREFIX 」
             break
         default:
 
-        if (command.startsWith(prefix)) {
-            reply(`Maaf ${pushname}, Command *${args[0]}* Tidak Terdaftar Di Dalam *#menu*!`)
+        if (body.startsWith(prefix)) {
+            reply(`Maaf ${pushname}, Command *${prefix}${command}* Tidak Terdaftar Di Dalam *#menu*!`)
         }
         if (budy.startsWith('x')){
             try {
