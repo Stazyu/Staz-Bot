@@ -196,6 +196,15 @@ module.exports = conn = async (conn, mek) => {
             conn.sendMessage(from, bufferimg, image, { quoted: mek, caption: capt })
         }
 
+        const sendSticker = (from, data, mek) => {
+            if (typeof data === 'string') {
+                conn.sendMessage(from, fs.readFileSync(data), MessageType.sticker, { quoted: mek })
+            } else {
+                conn.sendMessage(from, data, MessageType.sticker, { quoted: mek })
+            }
+            //wa.sendMessage(from, filename, MessageType.sticker, { quoted: mek } )
+        }
+
         const fakestatus = (teks) => {
             conn.sendMessage(from, teks, text, {
                 quoted: {
@@ -931,15 +940,76 @@ Prefix : 「 MULTI-PREFIX 」
                 break    
         case 'take':
         case 'colong':
-                if (!isQuotedSticker) return reply('Stiker aja om')
-                encmedia = JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo
-                media = await conn.downloadAndSaveMediaMessage(encmedia)
-                anu = args.join(' ').split('|')
-                satu = anu[0] !== '' ? anu[0] : `SELF`
-                dua = typeof anu[1] !== 'undefined' ? anu[1] : `BOT`
-                require('./lib/fetcher.js').createExif(satu, dua)
-                require('./lib/fetcher.js').modStick(media, conn, mek, from)
-                break
+            if (!isQuotedSticker) return reply('Stiker aja om')
+            encmedia = JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo
+            media = await conn.downloadAndSaveMediaMessage(encmedia)
+            anu = args.join(' ').split('|')
+            satu = anu[0] !== '' ? anu[0] : `SELF`
+            dua = typeof anu[1] !== 'undefined' ? anu[1] : `BOT`
+            require('./lib/fetcher.js').createExif(satu, dua)
+            require('./lib/fetcher.js').modStick(media, conn, mek, from)
+            break
+        case 'sticker':
+        case 'stiker':
+        case 's':
+            createExif('Staz', 'Bot')
+            if (isMedia && !mek.message.videoMessage || isQuotedImage) {
+                reply(mess.wait)
+                const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                const media = await conn.downloadAndSaveMediaMessage(encmedia, `./stik/${sender}`)
+                await ffmpeg(`${media}`)
+                        .input(media)
+                        .on('start', function (cmd) {
+                            console.log(`Started : ${cmd}`)
+                        })
+                        .on('error', function (err) {
+                            console.log(`Error : ${err}`)
+                            fs.unlinkSync(media)
+                            reply('error')
+                        })
+                        .on('end', function () {
+                            console.log('Finish')
+                            exec(`webpmux -set exif ./stik/data.exif ./stik/${sender}.webp -o ./stik/${sender}.webp`, async (error) => {
+                                if (error) return reply(mess.error.stick)
+                                sendSticker(from, fs.readFileSync(`./stik/${sender}.webp`), mek)
+                                fs.unlinkSync(media)	
+                                fs.unlinkSync(`./stik/${sender}.webp`)	
+                            })
+                        })
+                        .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
+                        .toFormat('webp')
+                        .save(`./stik/${sender}.webp`)
+            } else if ((isMedia && mek.message.videoMessage.fileLength < 10000000 || isQuotedVideo && mek.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.fileLength < 10000000)) {
+                const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                const media = await conn.downloadAndSaveMediaMessage(encmedia, `./stik/${sender}`)
+                reply(mess.wait)
+                await ffmpeg(`${media}`)
+                    .inputFormat(media.split('.')[4])
+                    .on('start', function (cmd) {
+                        console.log(`Started : ${cmd}`)
+                    })
+                    .on('error', function (err) {
+                        console.log(`Error : ${err}`)
+                        fs.unlinkSync(media)
+                        tipe = media.endsWith('.mp4') ? 'video' : 'gif'
+                        //amek.reply(from, mess.error.api, mek)
+                    })
+                    .on('end', function () {
+                        console.log('Finish')
+                        exec(`webpmux -set exif ./stik/data.exif ./stik/${sender}.webp -o ./stik/${sender}.webp`, async (error) => {
+                            if (error) return reply(mess.error.stick)
+                            bot.sendSticker(from, fs.readFileSync(`./stik/${sender}.webp`), mek)
+                            fs.unlinkSync(media)
+                            fs.unlinkSync(`./stik/${sender}.webp`)
+                        })
+                    })
+                    .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
+                    .toFormat('webp')
+                    .save(`./stik/${sender}.webp`)
+            } else {
+                reply(`Kirim gambar/video dengan caption ${prefix}sticker atau tag gambar/video yang sudah dikirim\nNote : Durasi video maximal 10 detik`)
+            }
+            break
         case 'stikerwm':
         case 'stickerwm':
         case 'swm':
@@ -947,58 +1017,58 @@ Prefix : 「 MULTI-PREFIX 」
                 var a = pe.split("|")[0];
                 var b = pe.split("|")[1];
                 if (isMedia && !mek.message.videoMessage || isQuotedImage ) {
-                const encmedia = isQuotedImage   ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
-                media = await conn.downloadAndSaveMediaMessage(encmedia)
-                await createExif(a,b)
-                out = getRandom('.webp')
-                ffmpeg(media)
-                .on('error', (e) => {
-                console.log(e)
-                conn.sendMessage(from, 'Terjadi kesalahan', 'conversation', { quoted: mek })
-                fs.unlinkSync(media)
-                })
-                .on('end', () => {
-                _out = getRandom('.webp')
-                spawn('webpmux', ['-set','exif','./stik/data.exif', out, '-o', _out])
-                .on('exit', () => {
-                conn.sendMessage(from, fs.readFileSync(_out),'stickerMessage', { quoted: mek })
-                fs.unlinkSync(out)
-                fs.unlinkSync(_out)
-                fs.unlinkSync(media)
-                })
-                })
-                .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
-                .toFormat('webp')
-                .save(out) 
+                    const encmedia = isQuotedImage   ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
+                    media = await conn.downloadAndSaveMediaMessage(encmedia)
+                    await createExif(a,b)
+                    out = getRandom('.webp')
+                    ffmpeg(media)
+                    .on('error', (e) => {
+                        console.log(e)
+                        conn.sendMessage(from, 'Terjadi kesalahan', 'conversation', { quoted: mek })
+                        fs.unlinkSync(media)
+                    })
+                    .on('end', () => {
+                        _out = getRandom('.webp')
+                        spawn('webpmux', ['-set','exif','./stik/data.exif', out, '-o', _out])
+                        .on('exit', () => {
+                            conn.sendMessage(from, fs.readFileSync(_out),'stickerMessage', { quoted: mek })
+                            fs.unlinkSync(out)
+                            fs.unlinkSync(_out)
+                            fs.unlinkSync(media)
+                        })
+                    })
+                    .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
+                    .toFormat('webp')
+                    .save(out) 
                 } else if ((isMedia && mek.message.videoMessage.seconds < 11 || isQuotedVideo && mek.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds < 11) && args.length == 0) {
-                const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
-                const media = await conn.downloadAndSaveMediaMessage(encmedia)
-                pe = args.join('')
-                var a = pe.split("|")[0];
-                var b = pe.split("|")[1];
-                await createExif(a,b)
-                out = getRandom('.webp')
-                ffmpeg(media)
-                .on('error', (e) => {
-                console.log(e)
-                conn.sendMessage(from, 'Terjadi kesalahan', 'conversation', { quoted: mek })
-                fs.unlinkSync(media)
-                })
-                .on('end', () => {
-                _out = getRandom('.webp')
-                spawn('webpmux', ['-set','exif','./stik/data.exif', out, '-o', _out])
-                .on('exit', () => {
-                conn.sendMessage(from, fs.readFileSync(_out),'stickerMessage', { quoted: mek })
-                fs.unlinkSync(out)
-                fs.unlinkSync(_out)
-                fs.unlinkSync(media)
-                })
-                })
-                .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
-                .toFormat('webp')
-                .save(out)       
+                    const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
+                    const media = await conn.downloadAndSaveMediaMessage(encmedia)
+                    pe = args.join('')
+                    var a = pe.split("|")[0];
+                    var b = pe.split("|")[1];
+                    await createExif(a,b)
+                    out = getRandom('.webp')
+                    ffmpeg(media)
+                    .on('error', (e) => {
+                        console.log(e)
+                        conn.sendMessage(from, 'Terjadi kesalahan', 'conversation', { quoted: mek })
+                        fs.unlinkSync(media)
+                    })
+                    .on('end', () => {
+                        _out = getRandom('.webp')
+                        spawn('webpmux', ['-set','exif','./stik/data.exif', out, '-o', _out])
+                    .on('exit', () => {
+                        conn.sendMessage(from, fs.readFileSync(_out),'stickerMessage', { quoted: mek })
+                        fs.unlinkSync(out)
+                        fs.unlinkSync(_out)
+                        fs.unlinkSync(media)
+                    })
+                    })
+                    .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
+                    .toFormat('webp')
+                    .save(out)       
                 } else {
-                reply(`Kirim gambar dengan caption ${prefix}swm teks|teks atau tag gambar yang sudah dikirim`)
+                    reply(`Kirim gambar dengan caption ${prefix}swm teks|teks atau tag gambar yang sudah dikirim`)
                 }
                 break
         case 'upswteks':
@@ -1127,72 +1197,16 @@ Prefix : 「 MULTI-PREFIX 」
                             const { dl_link, thumb, title, filesizeF, filesize } = res
                             axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
                             .then(async (a) => {
-                            if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
-                            const captions = `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP4\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
-                            sendMediaURL(from, thumb, captions)
-                            await sendMediaURL(from, dl_link).catch(() => reply('error'))
+                                if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
+                                const captions = `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP4\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
+                                sendMediaURL(from, thumb, captions)
+                                await sendMediaURL(from, dl_link).catch(() => reply('error'))
                             })                
-                            })
-                            } catch (err) {
-                            reply(mess.error.api)
-                            }
-                    break      
-        case 'sticker': 
-        case 'stiker':
-        case 'sg':
-        case 's':
-                if ((isMedia && !mek.message.videoMessage || isQuotedImage) && args.length == 0) {
-                const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
-                const media = await conn.downloadAndSaveMediaMessage(encmedia)
-                    ran = '666.webp'
-                    await ffmpeg(`./${media}`)
-                    .input(media)
-                    .on('start', function (cmd) {
-                        console.log(`Started : ${cmd}`)
-                    })
-                    .on('error', function (err) {
-                    console.log(`Error : ${err}`)
-                    fs.unlinkSync(media)
-                    reply('error')
-                    })
-                    .on('end', function () {
-                    console.log('Finish')
-                    conn.sendMessage(from, fs.readFileSync(ran), sticker, {quoted: mek})
-                    fs.unlinkSync(media)
-                    fs.unlinkSync(ran)
-                    })
-                    .addOutputOptions([`-vcodec`, `libwebp`, `-vf`, `scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
-                    .toFormat('webp')
-                    .save(ran)
-                    } else if ((isMedia && mek.message.videoMessage.seconds < 11 || isQuotedVideo && mek.message.extendedTextMessage.contextInfo.quotedMessage.videoMessage.seconds < 11) && args.length == 0) {
-                    const encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
-                    const media = await conn.downloadAndSaveMediaMessage(encmedia)
-                ran = '999.webp'
-                reply(mess.wait)
-                await ffmpeg(`./${media}`)
-                .inputFormat(media.split('.')[1])
-                .on('start', function (cmd) {
-                console.log(`Started : ${cmd}`)
-                })
-                .on('error', function (err) {
-                console.log(`Error : ${err}`)
-                fs.unlinkSync(media)
-                tipe = media.endsWith('.mp4') ? 'video' : 'gif'
-                reply(`Gagal, pada saat mengkonversi ${tipe} ke stiker`)
-                })
-                .on('end', function () {
-                console.log('Finish')
-                conn.sendMessage(from, fs.readFileSync(ran), sticker, {quoted: mek})
-                fs.unlinkSync(media)
-                fs.unlinkSync(ran)
-                    })
-                    .addOutputOptions([`-vcodec`, `libwebp`, `-vf`, `scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
-                    .toFormat('webp')
-                    .save(ran)
-                } else {
-                    reply(`Kirim gambar dengan caption ${prefix}sticker\nDurasi Sticker Video 1-9 Detik`)
-                }
-                break               
+                        })
+                    } catch (err) {
+                        reply(mess.error.api)
+                    }
+                break      
         case 'toimg':
                 if (!isQuotedSticker) return reply('𝗥𝗲𝗽𝗹𝘆/𝘁𝗮𝗴 𝘀𝘁𝗶𝗰𝗸𝗲𝗿 !')
                 reply(mess.wait)
