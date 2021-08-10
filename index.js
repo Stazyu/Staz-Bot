@@ -192,6 +192,10 @@ module.exports = conn = async (conn, mek) => {
             (id == null || id == undefined || id == false) ? conn.sendMessage(from, teks.trim(), extendedText, { contextInfo: { "mentionedJid": memberr } }) : conn.sendMessage(from, teks.trim(), extendedText, { quoted: mek, contextInfo: { "mentionedJid": memberr } })
         }
 
+        const sendImage = (bufferimg, capt) => {
+            conn.sendMessage(from, bufferimg, image, { quoted: mek, caption: capt })
+        }
+
         const fakestatus = (teks) => {
             conn.sendMessage(from, teks, text, {
                 quoted: {
@@ -1199,7 +1203,7 @@ Prefix : 「 MULTI-PREFIX 」
                 fs.unlinkSync(media)
                 if (err) return reply('Yah gagal, coba ulangi ^_^')
                 buffer = fs.readFileSync(ran)
-                fakethumb(buffer,'NIH')
+                sendImage(buffer,'NIH')
                 fs.unlinkSync(ran)
                 })
                 break
