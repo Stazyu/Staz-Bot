@@ -999,7 +999,7 @@ Prefix : 「 MULTI-PREFIX 」
                         console.log('Finish')
                         exec(`webpmux -set exif ./stik/data.exif ./stik/${sender}.webp -o ./stik/${sender}.webp`, async (error) => {
                             if (error) return reply(mess.error.stick)
-                            bot.sendSticker(from, fs.readFileSync(`./stik/${sender}.webp`), mek)
+                            sendSticker(from, fs.readFileSync(`./stik/${sender}.webp`), mek)
                             fs.unlinkSync(media)
                             fs.unlinkSync(`./stik/${sender}.webp`)
                         })
