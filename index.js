@@ -1467,7 +1467,7 @@ Prefix : 「 MULTI-PREFIX 」
 ├ Untuk menggunakan bot kirim ${prefix}menu
 │ Total User yang sudah verifikasi ${dbverify.length}
 │
-└─「 *SIMPLE BOT STICKER😎* 」`)
+└─「 *STAZ BOT😎* 」`)
 
                 const registersss = ({
                     id: nonye,
