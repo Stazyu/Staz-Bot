@@ -1,7 +1,7 @@
 # Staz-Bot
 
 <div align="center">
-<img src="https://i.ibb.co/qCHNd0j/36fa310d84b9844bbea4eaf9d6462eed5d6127c6.jpg" alt="STAZ-BOT" width="300px" />
+<img src="https://i.ibb.co/HtVB3Jr/767470.jpg" alt="STAZ-BOT" width="300px" />
 
 # Holaa
 
