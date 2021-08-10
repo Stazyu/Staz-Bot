@@ -3,7 +3,7 @@
 <div align="center">
 <img src="https://i.ibb.co/HtVB3Jr/767470.jpg" alt="STAZ-BOT" width="300px" />
 
-# Holaa
+### Holaa<img src="https://github.com/TheDudeThatCode/TheDudeThatCode/blob/master/Assets/Hi.gif" width="29px">
 
 >
 >
