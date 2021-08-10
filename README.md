@@ -50,6 +50,9 @@
 | ON |✅|
 | STATUS |✅|
 | BROADCAST/BC |✅|
+| ADD PREMIUM |✅|
+| DEL PREMIUM |✅|
+| LIST PREMIUM |✅|
 
 | ADMIN |🔁|
 | ------------- | ------------- |
