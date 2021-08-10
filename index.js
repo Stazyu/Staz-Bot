@@ -1171,20 +1171,20 @@ Prefix : 「 MULTI-PREFIX 」
                 var mulaikah = aramat[0].url							
                     try {
                         yta(mulaikah)
-                        .then((res) => {
-                            const { dl_link, thumb, title, filesizeF, filesize } = res
-                            axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
-                            .then(async (a) => {
-                            if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
-                            const captions = `*PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
-                            sendMediaURL(from, thumb, captions)
-                            await sendMediaURL(from, dl_link).catch(() => reply('error'))
-                            })                
+                            .then((res) => {
+                                const { dl_link, thumb, title, filesizeF, filesize } = res
+                                axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
+                                .then(async (a) => {
+                                    if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
+                                    const captions = ` *PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
+                                    sendMediaURL(from, thumb, captions)
+                                    await sendMediaURL(from, dl_link).catch(() => reply('error'))
+                                })                
                             })
-                            } catch (err) {
+                        } catch (err) {
                             reply(mess.error.api)
-                            }
-                break  
+                        }
+                break
             case 'video':
                 if (args.length === 0) return reply(`Kirim perintah *${prefix}video* _Judul lagu yang akan dicari_`)
                 var srch = args.join('')
