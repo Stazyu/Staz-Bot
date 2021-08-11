@@ -124,6 +124,7 @@
 | ------------- | ------------- |
 | SELF |✅|
 | PUBLIC |✅|
+| SELFBOT ON/OFF |✅|
 | SET THUMB |✅|
 | SET FAKE IMG |✅|
 | SET TARGET |✅|

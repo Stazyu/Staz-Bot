@@ -71,7 +71,8 @@ alasan = '-'
 
 let {
     banChats,
-    ownerNumber
+    ownerNumber,
+    selfbot
 } = setting
 
 function banChat() {
@@ -410,7 +411,11 @@ module.exports = conn = async (conn, mek) => {
         }
     }
 }	
-        if (!mek.key.fromMe && banChats && !isOwner) return
+        // Self or Public
+        if (!mek.key.fromMe && banChats && !isOwner ) return
+
+        // Selfbot (True or False)
+        if (mek.key.fromMe && !selfbot) return
     switch (command) {
         case 'menu':
         case 'help':
@@ -498,7 +503,7 @@ Prefix : 「 MULTI-PREFIX 」
                 break
         case 'tes':
             // console.log(mek.message.extendedTextMessage.contextInfo.mentionedJid[0])
-            console.log(!isOwner)
+            console.log(fromMe, !selfbot)
             console.log(mek)
             reply('tes')
             break
@@ -552,7 +557,7 @@ Prefix : 「 MULTI-PREFIX 」
             break
         case 'kick':
             if (!isGroup) return reply(mess.only.group)
-            // if (!isGroupAdmins) return reply(mess.only.adminGroup)
+            if (!isGroupAdmins) return reply(mess.only.adminGroup)
             if (!isBotGroupAdmins) return reply(mess.only.Botadmin)
             if (mek.message.extendedTextMessage === undefined || mek.message.extendedTextMessage === null) return reply('Tag target yang ingin di tendang!')
             mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid
@@ -697,7 +702,7 @@ Prefix : 「 MULTI-PREFIX 」
                 fakestatus(' ```ANDA TELAH ONLINE``` ')
                 break       
         case 'status':
-                fakestatus(`*STATUS*\n${offline ? '> OFFLINE' : '> ONLINE'}\n${banChats ? '> SELF-MODE' : '> PUBLIC-MODE'}`)
+                fakestatus(`*STATUS*\n${offline ? '> OFFLINE' : '> ONLINE'}\n${banChats ? '> SELF-MODE' : '> PUBLIC-MODE'}\n${selfbot ? '> SELFBOT ON' : '> SELFBOT OFF'}`)
                 break
         case 'off':
                 if (!mek.key.fromMe) return 
@@ -715,7 +720,7 @@ Prefix : 「 MULTI-PREFIX 」
                 })   
                 break
         case 'kontag':
-                if (!mek.key.fromMe) return reply('SELF-BOT')
+                if (!mek.key.fromMe && !isOwner) return reply('SELF-BOT')
                 pe = args.join('')
                 entah = pe.split('|')[0]
                 nah = pe.split('|')[1]
@@ -732,6 +737,7 @@ Prefix : 「 MULTI-PREFIX 」
                 conn.sendMessage(from, {displayName: `${nah}`, vcard: vcard}, contact, {contextInfo: {"mentionedJid": members_ids}})
                 break
         case 'sticktag':
+            if (!fromMe && !isOwner) return ('Khusus Owner!!')
                 if ((isMedia && !mek.message.videoMessage || isQuotedSticker) && args.length == 0) {
                 encmedia = isQuotedSticker ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
                 file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
@@ -845,7 +851,7 @@ Prefix : 「 MULTI-PREFIX 」
                 fakegroup(`Succes Mengganti target fitnahpc : ${targetpc}`)
                 break
         case 'fitnahpc':
-                if(!q) return reply(`${prefix}fitnahpc teks target|teks lu`)
+                if (!q) return reply(`${prefix}fitnahpc teks target|teks lu`)
                 jids = `${targetpc}@s.whatsapp.net` // nomer target
                 var split = args.join(' ').replace(/@|\d/gi, '').split('|')
                 var taged = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
@@ -1146,6 +1152,22 @@ Prefix : 「 MULTI-PREFIX 」
                 fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
                 fakestatus(`「 *SELF-MODE* 」`)
                 break
+        case 'selfbot':
+            if (!isOwner) return reply('fitur khusus Owner')
+            if (args[0] === 'on') {
+                if (setting.selfbot === true) return
+                setting.selfbot = true
+                selfbot = true
+                fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
+                fakestatus(`「 *SELF-MODE ON* 」`)
+            } else if (args[0] === 'off') {
+                if (setting.selfbot === false) return
+                setting.selfbot = false
+                selfbot = false
+                fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
+                fakestatus(`「 *SELF-MODE OFF* 」`)
+            }
+            break
         case 'h':
         case 'hidetag':
                 if (!mek.key.fromMe && !isOwner) return fakestatus('Fitur Khusus Owner!!')
