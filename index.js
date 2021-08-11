@@ -1347,7 +1347,7 @@ Prefix : 「 MULTI-PREFIX 」
             .catch(e => console.log(e))
             break
         case 'tiktokaudio':
-            if (!isUrl(args[0]) && !args[0].includes('tiktok.com')) return reply(mess.Iv)
+            if (!isUrl(args[0]) && !args[0].includes('tiktok.com')) return reply(mess.error.Iv)
             if (!q) return fakegroup('Linknya?')
             reply(mess.wait)
             hx.ttdownloader(`${args[0]}`)
@@ -1671,7 +1671,7 @@ Prefix : 「 MULTI-PREFIX 」
             break
         default:
 
-        if (body.startsWith(prefix) && prefix !== '*') {
+        if (body.startsWith(prefix) && !prefix.includes('*')) {
             reply(`Maaf ${pushname}, Command *${prefix}${command}* Tidak Terdaftar Di Dalam *#menu*!`)
         }
         if (budy.startsWith('x')){
