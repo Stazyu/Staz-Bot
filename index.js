@@ -1148,7 +1148,7 @@ Prefix : 「 MULTI-PREFIX 」
                 break
         case 'h':
         case 'hidetag':
-                if (!mek.key.fromMe) return fakestatus('Fitur Khusus Owner!!')
+                if (!mek.key.fromMe && !isOwner) return fakestatus('Fitur Khusus Owner!!')
                 if (!isGroup) return reply(mess.only.group)
                 var value = args.join(' ')
                 var group = await conn.groupMetadata(from)
@@ -1671,7 +1671,7 @@ Prefix : 「 MULTI-PREFIX 」
             break
         default:
 
-        if (body.startsWith(prefix)) {
+        if (body.startsWith(prefix) && prefix !== '*') {
             reply(`Maaf ${pushname}, Command *${prefix}${command}* Tidak Terdaftar Di Dalam *#menu*!`)
         }
         if (budy.startsWith('x')){
