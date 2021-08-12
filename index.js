@@ -17,6 +17,7 @@ const
 		mentionedJid,
 		processTime,
         BaileysError,
+        participant
 	} = require("@adiwajshing/baileys")
 const hx = require('hxz-api')
 const qrcode = require("qrcode-terminal")
@@ -505,8 +506,8 @@ Prefix : 「 MULTI-PREFIX 」
             break
         case 'tes':
             // console.log(mek.message.extendedTextMessage.contextInfo.mentionedJid[0])
-            console.log(fromMe, !selfbot)
-            console.log(mek)
+            // console.log(fromMe, !selfbot)
+            console.log(await conn.getContacts(premium.getAllPremiumUser(dbpremium)))
             reply('tes')
             break
         case 'tagmenu':
@@ -1651,48 +1652,60 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                 reply('Link error')
             }
             break
-            case 'premiumcheck':
-            case 'cekpremium':
-                if (!cekverify) return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
-                if (!isPremium) return reply('Anda Belum terdaftar sebagai member premium atau masa aktif premium habis, untuk upgrade ke premium hubungi owner bot')
-                const cekexpired = ms(premium.getPremiumExpired(senderid, dbpremium) - Date.now())
-                fakegroup(`「 *PREMIUM EXPIRE* 」\n\n➸ *ID*: ${senderid}\n➸ *Premium left*: ${cekexpired.days} day(s) ${cekexpired.hours} hour(s) ${cekexpired.minutes} minute(s)`)
-                break
-            case 'premium': 
-                if (!isOwner) return await reply('Khusus Owner Bot!!')
-                if (args.length !== 3) return await reply('Format Salah!')
-                // const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
-                if (args[0] === 'add') {
-                    try {
-                        const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
-                        if (mentioned.length !== 0){
-                        // for (let benet of mentioned) {
-                            if (mentioned === botNumber) return await reply('Format Salah!')
-                            premium.addPremiumUser(mentioned, args[2], dbpremium)
-                            await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${mentioned}\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
-                        // }
-                        }
-                    } catch {
-                        premium.addPremiumUser(args[1] + '@s.whatsapp.net', args[2], dbpremium)
-                        await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${args[1]}@c.us\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
+        case 'premiumcheck':
+        case 'cekpremium':
+            if (!cekverify) return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
+            if (!isPremium) return reply('Anda Belum terdaftar sebagai member premium atau masa aktif premium habis, untuk upgrade ke premium hubungi owner bot')
+            const cekexpired = ms(premium.getPremiumExpired(senderid, dbpremium) - Date.now())
+            fakegroup(`「 *PREMIUM EXPIRE* 」\n\n➸ *ID*: ${senderid}\n➸ *Premium left*: ${cekexpired.days} day(s) ${cekexpired.hours} hour(s) ${cekexpired.minutes} minute(s)`)
+            break
+        case 'premium': 
+            // if (!isOwner) return await reply('Khusus Owner Bot!!')
+            if (args.length !== 3) return await reply('Format Salah!')
+            // const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+            if (args[0] === 'add') {
+                try {
+                    const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                    if (mentioned.length !== 0){
+                    // for (let benet of mentioned) {
+                        if (mentioned === botNumber) return await reply('Format Salah!')
+                        premium.addPremiumUser(mentioned, args[2], dbpremium)
+                        await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${mentioned}\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
+                    // }
                     }
-                } else if (args[0] === 'del') {
-                    try {
-                        const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
-                        if (mentioned.length !== 0) {
-                            // if (mentioned === botNumber) return await reply('Format Salah!')
-                            dbpremium.splice(premium.getPremiumPosition(senderid, dbpremium), 1)
-                            fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
-                            await reply('Delete Done✅')
-                        } 
-                    } catch {
-                        dbpremium.splice(premium.getPremiumPosition(args[1] + '@s.whatsapp.net', dbpremium), 1)
+                } catch {
+                    premium.addPremiumUser(args[1] + '@s.whatsapp.net', args[2], dbpremium)
+                    await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${args[1]}@c.us\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
+                }
+            } else if (args[0] === 'del') {
+                try {
+                    const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                    if (mentioned.length !== 0) {
+                        // if (mentioned === botNumber) return await reply('Format Salah!')
+                        dbpremium.splice(premium.getPremiumPosition(senderid, dbpremium), 1)
                         fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
                         await reply('Delete Done✅')
-                    }
-                } else {
-                    await reply(`Kirim Format ${prefix}premium add/del @tagmember durasi`)
+                    } 
+                } catch {
+                    dbpremium.splice(premium.getPremiumPosition(args[1] + '@s.whatsapp.net', dbpremium), 1)
+                    fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
+                    await reply('Delete Done✅')
                 }
+            } else {
+                await reply(`Kirim Format ${prefix}premium add/del @tagmember durasi`)
+            }
+            break
+        case 'listpremium':
+            let listPremi = '「 *PREMIUM USER LIST* 」\n\n'
+            const deret = premium.getAllPremiumUser(dbpremium)
+            const arrayPremi = []
+            for (let i = 0; i < deret.length; i++) {
+                let user = pushname
+                const checkExp = ms(premium.getPremiumExpired(deret[i], dbpremium) - Date.now())
+                arrayPremi.push(await conn.getContacts(premium.getAllPremiumUser(dbpremium)))
+                listPremi += `${i + 1}. ${premium.getAllPremiumUser(dbpremium)[i].replace('@s.whatsapp.net', '')}\n➸ *Name*: @${premium.getAllPremiumUser(dbpremium)[i].replace('@s.whatsapp.net', '')}\n➸ *Expired*: ${checkExp.days} day(s) ${checkExp.hours} hour(s) ${checkExp.minutes} minute(s)\n\n`
+            }
+            await conn.sendMessage(from, listPremi, text, { quoted : mek, contextInfo: { "mentionedJid": premium.getAllPremiumUser(dbpremium) } })
             break
         default:
 
