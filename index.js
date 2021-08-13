@@ -73,7 +73,8 @@ alasan = '-'
 let {
     banChats,
     ownerNumber,
-    selfbot
+    selfbot,
+    ChatRead
 } = setting
 
 function banChat() {
@@ -135,6 +136,7 @@ module.exports = conn = async (conn, mek) => {
         const ownerNumber = [`6281578794887@s.whatsapp.net`]
 		const isGroup = from.endsWith('@g.us')
 		let sender = isGroup ? mek.participant : mek.key.remoteJid
+        let senderr = mek.key.remoteJid
         let senderid = mek.participant
         let fromMe = mek.key.fromMe
 		// const isSelfNumber = config.NomorSELF
@@ -154,6 +156,11 @@ module.exports = conn = async (conn, mek) => {
         const conts = mek.key.fromMe ? conn.user.jid : conn.contacts[sender] || { notify: jid.replace(/@.+/, '') }
         const pushname = mek.key.fromMe ? conn.user.name : conts.notify || conts.vname || conts.name || '-'
         const SN = GenerateSerialNumber("000000000000000000000000")
+
+        // Chat Read On/Off
+        if (ChatRead) {
+            conn.chatRead(from)
+        }
 
         const isPremium = premium.checkPremiumUser(senderid, dbpremium)
 
@@ -1167,11 +1174,31 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                 selfbot = false
                 fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
                 fakestatus(`「 *SELF-MODE OFF* 」`)
+            } else {
+                reply(`ketik ${prefix}selfbot on/off`)
+            }
+            break
+        case 'chatread':
+            // if (!isOwner) return reply('Fitur khusus Owner')
+            if (args[0] === 'on' ) {
+                if (setting.chatRead === true) return
+                setting.chatRead = true
+                ChatRead = true
+                fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
+                fakestatus('「 *CHAT-READ ON* 」')
+            } else if (args[0] === 'off') {
+                if (setting.chatRead === false)
+                setting.chatRead = false
+                ChatRead = false
+                fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
+                fakestatus('「 *CHAT-READ OFF* 」')
+            } else {
+                reply(`Ketik ${prefix}chatread on/off`)
             }
             break
         case 'h':
         case 'hidetag':
-            if (!mek.key.fromMe && !isOwner) return fakestatus('Fitur Khusus Owner!!')
+            if (!mek.key.fromMe && !isOwner && !isGroupAdmins) return fakestatus('Fitur Khusus Owner!!')
             if (!isGroup) return reply(mess.only.group)
             var value = args.join(' ')
             var group = await conn.groupMetadata(from)
