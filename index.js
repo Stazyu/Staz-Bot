@@ -69,6 +69,7 @@ alasan = '-'
 
 let {
     singleprefix,
+    zeksapi,
     banChats,
     ownerNumber,
     selfbot,
@@ -1827,6 +1828,17 @@ Prefix : ${singleprefix}
                 listPremi += `${i + 1}. ${premium.getAllPremiumUser(dbpremium)[i].replace('@s.whatsapp.net', '')}\n➸ *Name*: @${premium.getAllPremiumUser(dbpremium)[i].replace('@s.whatsapp.net', '')}\n➸ *Expired*: ${checkExp.days} day(s) ${checkExp.hours} hour(s) ${checkExp.minutes} minute(s)\n\n`
             }
             await conn.sendMessage(from, listPremi, text, { quoted : mek, contextInfo: { "mentionedJid": premium.getAllPremiumUser(dbpremium) } })
+            break
+        case 'artinama': 
+            if (!q) return reply('isi namanya?')
+            try {
+            const artinm = await axios.get(`https://api.zeks.xyz/api/artinama?apikey=${zeksapi}&nama=${q}`)
+            const result = artinm.data.result
+            reply(`*「 ARTI NAMA 」*\n\n• Artinama :${result}`)
+            } catch (err) {
+                console.log(err);
+                reply('Nama tidak ditemukan!')
+            }
             break
         default:
 
