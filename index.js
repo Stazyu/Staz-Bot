@@ -599,6 +599,15 @@ Prefix : 「 ${prf} 」
                 conn.groupRemove(from, mentioned)
             }
             break
+        case 'jadian':
+            if (!isGroup) return reply('perintah ini hanya dapat digunakan di dalam grup')
+            const membergroup = await groupMembers
+            // const groupmember = groupnya
+            const aku = membergroup[Math.floor(Math.random() * membergroup.length)];
+            const kamu = membergroup[Math.floor(Math.random() * membergroup.length)];
+            const sapa = `Cieee... @${aku.jid.replace(/@s.whatsapp.net/g, '')} 💘 @${kamu.jid.replace(/[@s.whatsapp.net]/g, '')} baru jadian nih\nBagi pj nya dong`
+            await conn.sendMessage(from, sapa, text, { contextInfo: { "mentionedJid": [aku.jid, kamu.jid] }})
+            break
         case 'delvote':
             if(!mek.key.remoteJid) return
             if(isVote) return reply('Tidak ada sesi Voting')
