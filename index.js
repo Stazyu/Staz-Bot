@@ -71,10 +71,12 @@ alasan = '-'
 
 
 let {
+    singleprefix,
     banChats,
     ownerNumber,
     selfbot,
-    ChatRead
+    ChatRead,
+    single_multi,
 } = setting
 
 function banChat() {
@@ -124,7 +126,8 @@ module.exports = conn = async (conn, mek) => {
 		const time = moment.tz('Asia/Jakarta').format('DD/MM HH:mm:ss')
                 const type = Object.keys(mek.message)[0]        
                 const cmd = (type === 'conversation' && mek.message.conversation) ? mek.message.conversation : (type == 'imageMessage') && mek.message.imageMessage.caption ? mek.message.imageMessage.caption : (type == 'videoMessage') && mek.message.videoMessage.caption ? mek.message.videoMessage.caption : (type == 'extendedTextMessage') && mek.message.extendedTextMessage.text ? mek.message.extendedTextMessage.text : ''.slice(1).trim().split(/ +/).shift().toLowerCase()
-                const prefix = /^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*@,;]/.test(cmd) ? cmd.match(/^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*,;]/gi) : '-'          	
+                const multiprefix = /^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*@,;]/.test(cmd) ? cmd.match(/^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*,;]/gi) : '-' 
+                const prefix = single_multi ? multiprefix : singleprefix  	
         body = (type === 'conversation' && mek.message.conversation.startsWith(prefix)) ? mek.message.conversation : (type == 'imageMessage') && mek.message.imageMessage.caption.startsWith(prefix) ? mek.message.imageMessage.caption : (type == 'videoMessage') && mek.message.videoMessage.caption.startsWith(prefix) ? mek.message.videoMessage.caption : (type == 'extendedTextMessage') && mek.message.extendedTextMessage.text.startsWith(prefix) ? mek.message.extendedTextMessage.text : ''
 		budy = (type === 'conversation') ? mek.message.conversation : (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text : ''
 		const command = body.slice(1).trim().split(/ +/).shift().toLowerCase()		
@@ -357,6 +360,7 @@ module.exports = conn = async (conn, mek) => {
 		const isMedia = (type === 'imageMessage' || type === 'videoMessage')
         const isImage = type === 'imageMessage'
         const isVideo = type === 'videoMessage'
+        const isSticker = type === 'stickerMessage'
 		const isQuotedImage = type === 'extendedTextMessage' && content.includes('imageMessage')
 		const isQuotedVideo = type === 'extendedTextMessage' && content.includes('videoMessage')
 		const isQuotedAudio = type === 'extendedTextMessage' && content.includes('audioMessage')
@@ -419,7 +423,13 @@ module.exports = conn = async (conn, mek) => {
                     mentions(_vote,_p,true)   
                 }
             }
-        }	
+        }
+
+        if (budy === 'cekprefix') {
+            const prf = single_multi ? 'Multi-Prefix' : singleprefix
+            reply(`Prefix : ${prf}`)
+        }
+
         // Self or Public
         if (!mek.key.fromMe && banChats && !isOwner ) return
 
@@ -1179,21 +1189,41 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
             }
             break
         case 'chatread':
-            // if (!isOwner) return reply('Fitur khusus Owner')
+            if (!isOwner) return reply('Fitur khusus Owner')
             if (args[0] === 'on' ) {
                 if (setting.chatRead === true) return
-                setting.chatRead = true
+                setting.ChatRead = true
                 ChatRead = true
                 fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
                 fakestatus('「 *CHAT-READ ON* 」')
             } else if (args[0] === 'off') {
                 if (setting.chatRead === false)
-                setting.chatRead = false
+                setting.ChatRead = false
                 ChatRead = false
                 fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
                 fakestatus('「 *CHAT-READ OFF* 」')
             } else {
                 reply(`Ketik ${prefix}chatread on/off`)
+            }
+            break
+        case 'prefix':
+            // if (!isOwner) return reply('Fitur khusus Owner')
+            if (args[0] === 'multi' ) {
+                if (setting.single_multi === true) return
+                setting.single_multi = true
+                single_multi = true
+                fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
+                fakestatus('「 *MULTI-PREFIX* 」')
+            } else if (args[0] === 'single') {
+                if (setting.single_multi === false)
+                setting.single_multi = false
+                single_multi = false
+                fs.writeFileSync('./setting.json', JSON.stringify(setting, null, 2))
+                fakestatus(`「 *SINGLE-PREFIX* 」
+Prefix : ${singleprefix}
+                `)
+            } else {
+                reply(`Ketik ${prefix}prefix multi/single`)
             }
             break
         case 'h':

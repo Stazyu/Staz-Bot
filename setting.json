@@ -1,8 +1,9 @@
 {
+  "singleprefix": "#",
   "zeksapi": "",
   "banChats": false,
   "selfbot": false,
   "ChatRead": true,
-  "ownerNumber": "6283104500832",
-  "chatRead": true
+  "single_multi": true,
+  "ownerNumber": "6283104500832"
 }
