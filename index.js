@@ -1,5 +1,3 @@
-// SC NYA JANGAN DI JUAL NGENTOD
-//MAKASIH DAH PAKE 
 const
 	{
 		WAConnection,
@@ -63,7 +61,6 @@ let afk = JSON.parse(fs.readFileSync('./lib/off.json'))
 
 offline = false
 targetpc = '6285751056816'
-owner = '6283104500832'
 fake = 'STAZ'
 numbernye = '0'
 waktu = '-'
@@ -139,7 +136,6 @@ module.exports = conn = async (conn, mek) => {
         const ownerNumber = [`6281578794887@s.whatsapp.net`]
 		const isGroup = from.endsWith('@g.us')
 		let sender = isGroup ? mek.participant : mek.key.remoteJid
-        let senderr = mek.key.remoteJid
         let senderid = mek.participant
         let fromMe = mek.key.fromMe
 		// const isSelfNumber = config.NomorSELF
