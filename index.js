@@ -425,16 +425,20 @@ module.exports = conn = async (conn, mek) => {
             }
         }
 
-        if (budy === 'cekprefix') {
-            const prf = single_multi ? 'Multi-Prefix' : singleprefix
-            reply(`Prefix : ${prf}`)
-        }
-
         // Self or Public
         if (!mek.key.fromMe && banChats && !isOwner ) return
 
         // Selfbot (True or False)
         if (mek.key.fromMe && !selfbot) return
+
+        if (budy === 'cekprefix') {
+            const prf = single_multi ? 'Multi-Prefix' : singleprefix
+            reply(`Prefix : ${prf}`)
+        }
+
+        if (budy === 'Bot') {
+            reply('Ada yang bisa di bantu? Ketik #menu untuk melihat menu bot')
+        }
 
     switch (command) {
         case 'menu':
