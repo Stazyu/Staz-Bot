@@ -440,13 +440,16 @@ module.exports = conn = async (conn, mek) => {
         case 'menu':
         case 'help':
             const opbot = banChats ? 'SELF' : 'PUBLIC'
+            const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
             let menu = `Hai ${pushname}
-Prefix : 「 MULTI-PREFIX 」
+Prefix : 「 ${prf} 」
 
 *</OWNER>*
 ► _${prefix}off_
 ► _${prefix}on_
 ► _${prefix}status_
+► _${prefix}self_
+► _${prefix}public_
 
 *</MAKER>*
 ► _${prefix}sticker_
@@ -498,8 +501,7 @@ Prefix : 「 MULTI-PREFIX 」
 ► _${prefix}otaku_ <query>
 
 *</OTHER>*
-► _${prefix}self_
-► _${prefix}public_
+► _cekprefix_
 ► _${prefix}setthumb_
 ► _${prefix}settarget_
 ► _${prefix}setfakeimg_
