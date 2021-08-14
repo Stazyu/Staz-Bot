@@ -369,9 +369,8 @@ module.exports = conn = async (conn, mek) => {
         if (!isCmd && isGroup && !fromMe) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color('Message'), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
 	    
         // Cek Verifikasi
-        if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe) {
-            reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
-        }
+        if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe) 
+        return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
         
         if(isGroup && !isVote) {
             if (budy.toLowerCase() === 'vote'){
@@ -432,7 +431,7 @@ module.exports = conn = async (conn, mek) => {
             reply(`Prefix : ${prf}`)
         }
 
-        if (budy === 'Bot') {
+        if (budy === 'Bot' || budy === 'bot') {
             reply('Ada yang bisa di bantu? Ketik #menu untuk melihat menu bot')
         }
 
@@ -473,9 +472,6 @@ Prefix : 「 ${prf} 」
 ► _${prefix}upswvideo_
 
 *</FUN>*
-► _${prefix}fitnah_
-► _${prefix}fitnahpc_
-► _${prefix}kontak_
 
 *</DOWNLOAD>*
 ► _${prefix}ytsearch_ <query>
@@ -538,6 +534,13 @@ Prefix : 「 ${prf} 」
         ► _${prefix}totag_`
             )
             break
+        case 'funmenu':
+            fakestatus(`*</FUN>*
+► _${prefix}fitnah_
+► _${prefix}fitnahpc_
+► _${prefix}kontak_
+            `)
+            break
         case 'bc':
             if (!fromMe && !isOwner) return reply(mess.only.ownerBot)
             if (args.length === 0) return reply(`Masukkan text`)
@@ -568,7 +571,7 @@ Prefix : 「 ${prf} 」
             // if (!isGroupAdmins) return reply(mess.only.adminGroup)
             if (!isBotGroupAdmins) return reply(mess.only.Botadmin)
             if (args.length < 1) return reply('yang mau di add jin ya? :v')
-            if (args[0].startsWith('08')) return reply('Gunakan kode negara mas')
+            if (args[0].startsWith('08')) return reply('Gunakan kode negara kak')
             try {
                 let num = `${args[0].replace(/ /g, '')}@s.whatsapp.net`
                 conn.groupAdd(from, [num])
@@ -632,7 +635,10 @@ Prefix : 「 ${prf} 」
                     res += `*Nama*: *${i.nama}\n*Link*: ${i.link}\n\n`
                 }
                 reply(res)
-            });
+            })
+            .catch (err => {
+                reply('error coba di ulang')
+            })
             break
         case 'igstory': 
             if(!q) return reply('Usernamenya?')
@@ -647,7 +653,11 @@ Prefix : 「 ${prf} 」
                     conn.sendMessage(from,link,image,{quoted: mek,caption: `Type : ${i.type}`})                  
                 }
             }
-            });
+            })
+            .catch (err => {
+                console.log(err)
+                reply('Username tidak ada!')
+            })
             break
         case 'caripesan':
             if(!q)return reply('pesannya apa bang?')
@@ -673,6 +683,7 @@ Prefix : 「 ${prf} 」
             break
         case 'otaku':
             if(!q) return reply('judul animenya?')
+            try {
             let anime = await hx.otakudesu(q)
             rem = `*Judul* : ${anime.judul}
 *Jepang* : ${anime.jepang}
@@ -688,9 +699,14 @@ Prefix : 「 ${prf} 」
 ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.batchSD}\n*Link Download HD* : ${anime.batchHD}`
             ram = await getBuffer(anime.img)
             conn.sendMessage(from,ram,image,{quoted:mek,caption:rem})
+            } catch (err) {
+                console.log(`Error :`, err)
+                reply('Anime tidak ditemukan!')
+            }
             break
         case 'komiku':
             if(!q) return reply(`judulnya?\n${prefix}komiku mao gakuin`)
+            try {
             let komik = await hx.komiku(q)
             result = `*Title* : ${komik.title}\n
 *Title Indo* : ${komik.indo}\n
@@ -699,26 +715,41 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
 *Chapter Awal* : ${komik.chapter_awal}
 *Chapter Akhir* : ${komik.chapter_akhir}`
             sendMediaURL(from, komik.image,result)
+            } catch (err) {
+                console.log(err)
+                reply('Komik tidak ditemukan!')
+            }
             break
         case 'chara':
             if(!q) return reply(`gambar apa?\n${prefix}chara nino`)
+            try {
             let im = await hx.chara(q)
             let acak = im[Math.floor(Math.random() * im.length)]
             let li = await getBuffer(acak)
             await conn.sendMessage(from,li,image,{quoted: mek})
+            } catch (err) {
+                console.log(err);
+                reply('Chara tidak ditemukan!')
+            }
             break
         case 'pinterest':
             if(!q) return reply('gambar apa?')
+            try {
             let pin = await hx.pinterest(q)
             let ac = pin[Math.floor(Math.random() * pin.length)]
             let di = await getBuffer(ac)
             await conn.sendMessage(from,di,image,{quoted: mek})
+            } catch (err) {
+                console.log(err);
+                reply('Gambar tidak ditemukan!')
+            }
             break
         case 'playstore':
             if(!q) return reply('lu nyari apa?')
+            try {
             let play = await hx.playstore(q)
             let store = '❉─────────────────────❉\n'
-            for (let i of play){
+            for (let i of play) {
             store += `\n*「 _PLAY STORE_ 」*\n
 - *Nama* : ${i.name}
 - *Link* : ${i.link}\n
@@ -726,6 +757,10 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
 - *Link Dev* : ${i.link_dev}\n❉─────────────────────❉`
             }
             reply(store)
+            } catch (err) {
+                console.log(err);
+                reply('Ada masalah!')
+            }
             break
         case 'on':
             if (!mek.key.fromMe) return 
@@ -963,6 +998,7 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
             });
             break
         case 'kontak':
+            if (!q) return reply(`Ketik ${prefix}kontak nomornya|namanya Contoh: ${prefix}kontak 628815268728|Testing`)
             pe = args.join(' ') 
             entah = pe.split('|')[0]
             nah = pe.split('|')[1]
@@ -1138,6 +1174,7 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
             }
             break
         case 'fdeface':
+            if (!fromMe && !isOwner) return reply('Fitur khusus Owner')
             ge = args.join('')           
             var pe = ge.split("|")[0];
             var pen = ge.split("|")[1];
@@ -1476,7 +1513,11 @@ Prefix : ${singleprefix}
                         conn.sendMessage(from,link,image,{quoted: mek,caption: `Type : ${i.type}`})                  
                     }
                 }
-                });
+            })
+            // .catch (err) {
+            //     console.log(`Err : ${err}`)
+            //     reply('Ada masalah, coba di ulang')
+            // }
             break
         case 'igstalk':
             if (!q) return fakegroup('Usernamenya?')
@@ -1485,7 +1526,11 @@ Prefix : ${singleprefix}
                 ten = `${Y.profile_pic_url_hd}`
                 teks = `*ID* : ${Y.profile_id}\n*Username* : ${args.join('')}\n*Full Name* : ${Y.full_name}\n*Bio* : ${Y.biography}\n*Followers* : ${Y.followers}\n*Following* : ${Y.following}\n*Private* : ${Y.is_private}\n*Verified* : ${Y.is_verified}\n\n*Link* : https://instagram.com/${args.join('')}`
                 sendMediaURL(from,ten,teks) 
-            })      
+            })
+            // .catch (err) {
+            //     console.log('Err :', err)
+            //     reply('Username tidak ditemukan!')
+            // }
             break    
         case 'fb':
             if (!q) return reply('Linknya?')
@@ -1497,6 +1542,10 @@ Prefix : ${singleprefix}
                 ten = `${G.HD}`
                 sendMediaURL(from,ten,`*Link video_normal* : ${G.Normal_video}`)
             })
+            // .catch (err) {
+            //     console.log(`Error : ${err}`)
+            //     reply('Ada masalah, silahkan coba lagi')
+            // }
             break    
         case 'term':
             if (!q) return fakegroup(mess.wrongFormat)
@@ -1524,10 +1573,15 @@ Prefix : ${singleprefix}
         case 'twitter':
             if (!isUrl(args[0]) && !args[0].includes('twitter.com')) return reply(mess.Iv)
             if (!q) return fakegroup('Linknya?')
+            try {
             ten = args[0]
             var res = await hx.twitter(`${ten}`)
             ren = `${g.HD}`
             sendMediaURL(from,ren,'DONE')
+            } catch (err) {
+                console.log(`Error : ${err}`);
+                reply('Ada masalah, silahkan di coba lagi')
+            }
             break
         case 'verify':
             const nonye = sender
@@ -1557,7 +1611,7 @@ Prefix : ${singleprefix}
 ├ *WAKTU : ${moment().format('DD/MM/YY HH:mm:ss')}*
 ├ *BATAS PEMAKAIAN : Unlimited/Day*
 │
-├ Untuk menggunakan bot kirim ${prefix}menu
+├ Untuk melihat menu bot kirim ${prefix}menu
 │ Total User yang sudah verifikasi ${dbverify.length}
 │
 └─「 *STAZ BOT😎* 」`)
@@ -1728,9 +1782,8 @@ Prefix : ${singleprefix}
             fakegroup(`「 *PREMIUM EXPIRE* 」\n\n➸ *ID*: ${senderid}\n➸ *Premium left*: ${cekexpired.days} day(s) ${cekexpired.hours} hour(s) ${cekexpired.minutes} minute(s)`)
             break
         case 'premium': 
-            // if (!isOwner) return await reply('Khusus Owner Bot!!')
+            if (!isOwner) return await reply('Khusus Owner Bot!!')
             if (args.length !== 3) return await reply('Format Salah!')
-            // const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
             if (args[0] === 'add') {
                 try {
                     const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
