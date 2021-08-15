@@ -102,6 +102,7 @@
 | FITNAH |✅|
 | FITNAH PC |✅|
 | KONTAK |✅|
+| JADIAN💘 |✅|
 
 | DOWNLOAD |✅|
 | ------------- | ------------- |
@@ -122,6 +123,7 @@
 
 | OTHER |✅|
 | ------------- | ------------- |
+| ARTINAMA |✅|
 | SELF |✅|
 | PUBLIC |✅|
 | SELFBOT ON/OFF |✅|

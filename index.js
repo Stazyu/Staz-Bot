@@ -473,6 +473,8 @@ Prefix : 「 ${prf} 」
 ► _${prefix}upswvideo_
 
 *</FUN>*
+► _${prefix}artinama_
+► _${prefix}jadian_
 
 *</DOWNLOAD>*
 ► _${prefix}ytsearch_ <query>
