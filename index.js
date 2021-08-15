@@ -1001,7 +1001,7 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
             });
             break
         case 'kontak':
-            if (!q) return reply(`Ketik ${prefix}kontak nomornya|namanya Contoh: ${prefix}kontak 628815268728|Testing`)
+            if (!q) return reply(`Ketik ${prefix}kontak nomornya|namanya\nContoh: ${prefix}kontak 628815268728|Testing`)
             pe = args.join(' ') 
             entah = pe.split('|')[0]
             nah = pe.split('|')[1]
