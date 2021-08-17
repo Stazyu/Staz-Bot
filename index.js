@@ -621,7 +621,7 @@ Prefix : 「 ${prf} 」
             if(!isGroupAdmins && !mek.key.fromMe) return 
             if(!isGroup) return reply(mess.only.group)
             if (isVote) return reply('Sesi Voting Sedang Berlangsung Di Grup Ini')
-            if(!q) return reply('*Voting*\n\n'+  'voting @tag target | reason  | 1 (1 = 1 Menit)')
+            if(!q) return reply('*Voting*\n\n'+ prefix+ 'voting @tag target | reason  | 1 (1 = 1 Menit)')
             if (mek.message.extendedTextMessage.contextInfo.mentionedJid.length > 0 || mek.message.extendedTextMessage.contextInfo == null) {
                 let id = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
                 split = args.join(' ').replace('@', '').split('|')
