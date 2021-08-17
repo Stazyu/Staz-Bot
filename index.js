@@ -476,6 +476,15 @@ Prefix : 「 ${prf} 」
 *</FUN>*
 ► _${prefix}artinama_
 ► _${prefix}jadian_
+► _${prefix}kapankah_
+► _${prefix}apakah_
+► _${prefix}bisakah_
+► _${prefix}rategay_
+► _${prefix}ratelesbi_
+► _${prefix}ratetampan_
+► _${prefix}ratecantik_
+► _${prefix}cekwatak_
+► _${prefix}rate_
 
 *</DOWNLOAD>*
 ► _${prefix}ytsearch_ <query>
