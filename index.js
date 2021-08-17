@@ -51,6 +51,7 @@ const time = moment().tz('Asia/Jakarta').format("HH:mm:ss")
 const { sleep, isAfk, cekafk, addafk } = require('./lib/offline')
 const { addVote, delVote } = require('./lib/vote')
 const { premium } = require('./function/')
+const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
 
 /// DATABASE ///
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
@@ -193,7 +194,7 @@ module.exports = conn = async (conn, mek) => {
             conn.sendMessage(from, teks, text, {quoted:mek})
         }
 
-        const sendMess = (hehe, teks) => {
+        const sendText = (hehe, teks) => {
             conn.sendMessage(hehe, teks, text)
         }
 
@@ -620,7 +621,7 @@ Prefix : 「 ${prf} 」
             if(!isGroupAdmins && !mek.key.fromMe) return 
             if(!isGroup) return reply(mess.only.group)
             if (isVote) return reply('Sesi Voting Sedang Berlangsung Di Grup Ini')
-            if(!q) return reply('*Voting*\n\n'+ prefix+ 'voting @tag target | reason  | 1 (1 = 1 Menit)')
+            if(!q) return reply('*Voting*\n\n'+  'voting @tag target | reason  | 1 (1 = 1 Menit)')
             if (mek.message.extendedTextMessage.contextInfo.mentionedJid.length > 0 || mek.message.extendedTextMessage.contextInfo == null) {
                 let id = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
                 split = args.join(' ').replace('@', '').split('|')
@@ -1604,7 +1605,7 @@ Prefix : ${singleprefix}
             if (obj === true){
                 return reply('Kamu sudah melakukan verifikasi') // BAKAL RESPON JIKA NO UDAH ADA
             } else {
-                // const mentah = await staz.checkNumberStatus(nonye) // PENDAFTARAN
+                // const mentah = await checkNumberStatus(nonye) // PENDAFTARAN
                 const verif = (`┌─「 *VERIFY-SUCCES* 」
 │
 ├ *NAMA : ${pushname}*
@@ -1841,6 +1842,89 @@ Prefix : ${singleprefix}
                 console.log(err);
                 reply('Nama tidak ditemukan!')
             }
+            break
+        case 'dadu':
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            const dice = Math.floor(Math.random() * 6) + 1
+            await sendStickerFromUrl(from, 'https://www.random.org/dice/dice' + dice + '.png')
+            break
+        case 'kapankah':
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}kapankah [text]*, contoh *${prefix}kapankah Staz balik*`)
+            const when = body.slice(10)
+            const ans = kapankah[Math.floor(Math.random() * (kapankah.length))]
+            await sendText(from, `Pertanyaan: *${when}* \n\nJawaban: ${ans}`)
+            break
+        case 'nilai':
+        case 'rate':
+            if(isReg(obj)) return
+            // if(cekumur(cekage)) return
+            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}rate [text]*, contoh *${prefix}rate Staz*`)
+            const rating = body.slice(7)
+            const awr = rate[Math.floor(Math.random() * (rate.length))]
+            await sendText(from, `Pertanyaan: *${rating}* \n\nJawaban: ${awr}`)
+            break
+        case 'apakah':
+            if(isReg(obj)) return
+            // if(cekumur(cekage)) return
+            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}apakah [text]*, contoh *${prefix}apakah [text]*`)
+            const nanya = body.slice(8)
+            const jawab = apakah[Math.floor(Math.random() * (apakah.length))]
+            await sendText(from, `Pertanyaan: *${nanya}* \n\nJawaban: ${jawab}`)
+            break
+        case 'bisakah':
+            if(isReg(obj)) return
+            // if(cekumur(cekage)) return
+            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}bisakah [text]*`)
+            const bsk = body.slice(9)
+            const jbsk = bisakah[Math.floor(Math.random() * (bisakah.length))]
+            await sendText(from, `Pertanyaan: *${bsk}* \n\nJawaban: ${jbsk}`)
+            break
+        case 'rategay':
+            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}rategay [text]*`)
+            const kimakss_ = body.slice(9)
+            const awrs = rategay[Math.floor(Math.random() * (rategay.length))]
+            await sendText(from, `Seberapa Gay : *${kimakss_}*\nJawaban : *${awrs}*`)
+            break
+        case 'ratelesbi':
+            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}ratelesbi [text]*`)
+            const kimaksss_ = body.slice(11)
+            const awrss = ratelesbi[Math.floor(Math.random() * (ratelesbi.length))]
+            await sendText(from, `Seberapa Lesbi : *${kimaksss_}*\nJawaban : *${awrss}*`)
+            break
+        case 'ratetampan':
+            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}ratetampan [text]*`)
+            const pukilol = body.slice(12)
+            const auah = ratetampan[Math.floor(Math.random() * (ratetampan.length))]
+            await sendText(from, `Nama : *${pukilol}*\nTingkat Ketampanan : ${auah}`)
+            break
+        case 'ratecantik':
+            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}ratecantik [text]*`)
+            const pukilols = body.slice(12)
+            const sygg = ratecantik[Math.floor(Math.random() * (ratecantik.length))]
+            await sendText(from, `Nama : *${pukilols}*\nTingkat kecantikan : ${sygg}`)
+            break
+        case 'cekwatak':
+            var namao = pushname
+            try {
+                prfx = await conn.getProfilePicture(sender)
+            } catch {
+                prfx = 'https://steamuserimages-a.akamaihd.net/ugc/954087817129084207/5B7E46EE484181A676C02DFCAD48ECB1C74BC423/?imw=512&&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false'
+            }
+            const wtk = watak[Math.floor(Math.random() * (watak.length))]
+            const akhlak = ratenyaasu[Math.floor(Math.random() * (ratenyaasu.length))]
+            const sft = sifat[Math.floor(Math.random() * (sifat.length))]
+            const hby = hobby[Math.floor(Math.random() * (hobby.length))]
+            const klbh = kelebihan[Math.floor(Math.random() * (kelebihan.length))]
+            const typo = tipe[Math.floor(Math.random() * (tipe.length))]
+            await reply(`[ INTROGASI SUKSES ]\n\n• *Nama* : ${namao}\n• *Watak* : ${wtk}\n• *Akhlak* : ${akhlak}\n• *Sifat* : ${sft}\n• *Hobby* : ${hby}\n• *Tipe* : ${typo}\n• *Kelebihan* : ${klbh}\n\n*Note*\n_ini hanya main main_`)
             break
         default:
 

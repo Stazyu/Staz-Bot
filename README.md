@@ -103,6 +103,15 @@
 | FITNAH PC |✅|
 | KONTAK |✅|
 | JADIAN💘 |✅|
+| KAPANKAH |✅|
+| RATE |✅|
+| APAKAH |✅|
+| BISAKAH |✅|
+| RATEGAY |✅|
+| RATELESBI |✅|
+| RATETAMPAN |✅|
+| RATECANTIK |✅|
+| CEKWATAK |✅|
 
 | DOWNLOAD |✅|
 | ------------- | ------------- |
