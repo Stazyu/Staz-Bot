@@ -1868,8 +1868,6 @@ Prefix : ${singleprefix}
             break
         case 'nilai':
         case 'rate':
-            if(isReg(obj)) return
-            // if(cekumur(cekage)) return
             if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
             if (args.length === 0) return reply(from, `Kirim perintah *${prefix}rate [text]*, contoh *${prefix}rate Staz*`)
             const rating = body.slice(7)
@@ -1877,8 +1875,6 @@ Prefix : ${singleprefix}
             await sendText(from, `Pertanyaan: *${rating}* \n\nJawaban: ${awr}`)
             break
         case 'apakah':
-            if(isReg(obj)) return
-            // if(cekumur(cekage)) return
             if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
             if (args.length === 0) return reply(from, `Kirim perintah *${prefix}apakah [text]*, contoh *${prefix}apakah [text]*`)
             const nanya = body.slice(8)
@@ -1886,8 +1882,6 @@ Prefix : ${singleprefix}
             await sendText(from, `Pertanyaan: *${nanya}* \n\nJawaban: ${jawab}`)
             break
         case 'bisakah':
-            if(isReg(obj)) return
-            // if(cekumur(cekage)) return
             if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
             if (args.length === 0) return reply(from, `Kirim perintah *${prefix}bisakah [text]*`)
             const bsk = body.slice(9)
