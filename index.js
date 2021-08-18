@@ -1394,6 +1394,7 @@ Prefix : ${singleprefix}
             fakegroup(`Succes Mengganti Conversation Fake : ${q}`)
             break
         case 'setfakeimg':
+            if (!fromMe && !isOwner) return reply('Fitur Khusus Owner')
             if ((isMedia && !mek.message.videoMessage || isQuotedImage || isQuotedSticker) && args.length == 0) {
                 boij = isQuotedImage || isQuotedSticker ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
                 delb = await conn.downloadMediaMessage(boij)
@@ -1404,6 +1405,7 @@ Prefix : ${singleprefix}
             }
             break	
         case 'setthumb':
+            if (!fromMe && !isOwner) return reply('Fitur Khusus Owner')
             if ((isMedia && !mek.message.videoMessage || isQuotedImage || isQuotedSticker) && args.length == 0) {
                 boij = isQuotedImage || isQuotedSticker ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
                 delb = await conn.downloadMediaMessage(boij)
