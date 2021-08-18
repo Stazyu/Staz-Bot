@@ -1563,6 +1563,7 @@ Prefix : ${singleprefix}
             // }
             break    
         case 'term':
+            if (!fromMe && !isOwner) return
             if (!q) return fakegroup(mess.wrongFormat)
             exec(q, (err, stdout) => {
                 if (err) return fakegroup(`SELF-BOT:~ ${err}`)
