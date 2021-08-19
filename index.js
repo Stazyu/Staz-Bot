@@ -442,7 +442,73 @@ module.exports = conn = async (conn, mek) => {
         case 'help':
             const opbot = banChats ? 'SELF' : 'PUBLIC'
             const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
-            let menu = `Hai ${pushname}
+            let menupublic = `Hai ${pushname}
+Prefix : 「 ${prf} 」
+
+*</MAKER>*
+► _${prefix}sticker_
+► _${prefix}swm_ <author|packname>
+► _${prefix}take_ <author|packname>
+► _${prefix}emoji_
+
+*</CONVERT>*
+► _${prefix}toimg_
+► _${prefix}tomp3_
+► _${prefix}tomp4_
+► _${prefix}slow_
+► _${prefix}fast_
+► _${prefix}reverse_
+► _${prefix}tourl_
+
+*</FUN>*
+► _${prefix}artinama_
+► _${prefix}jadian_
+► _${prefix}kapankah_
+► _${prefix}apakah_
+► _${prefix}bisakah_
+► _${prefix}rategay_
+► _${prefix}ratelesbi_
+► _${prefix}ratetampan_
+► _${prefix}ratecantik_
+► _${prefix}cekwatak_
+► _${prefix}rate_
+
+*</DOWNLOAD>*
+► _${prefix}ytsearch_ <query>
+► _${prefix}igstalk_ <query>
+► _${prefix}play_ <query>
+► _${prefix}video_ <query>
+► _${prefix}ytmp3_ <link>
+► _${prefix}ytmp4_ <link>
+► _${prefix}ig_ <link>
+► _${prefix}igstory_ <username>
+► _${prefix}twitter_ <link>
+► _${prefix}tiktok_ <link>
+► _${prefix}tiktokaudio_ <link>
+► _${prefix}fb_ <link>
+► _${prefix}brainly_ <query>
+► _${prefix}image_ <query>
+► _${prefix}anime_ <random>
+► _${prefix}pinterest_ <query>
+► _${prefix}komiku_ <query>
+► _${prefix}lirik_ <query>
+► _${prefix}chara_ <query>
+► _${prefix}playstore_ <query>
+► _${prefix}otaku_ <query>
+
+*</OTHER>*
+► _cekprefix_
+► _${prefix}ping_
+
+*</VOTE>*
+► _${prefix}voting_
+► _${prefix}delvote_
+► _vote_
+► _devote_
+
+❏ *${opbot}-BOT* ❏`
+/*-----------------------------------------------*/
+            let menuself = `Hai ${pushname}
 Prefix : 「 ${prf} 」
 
 *</OWNER>*
@@ -472,19 +538,6 @@ Prefix : 「 ${prf} 」
 ► _${prefix}upswteks_
 ► _${prefix}upswimage_
 ► _${prefix}upswvideo_
-
-*</FUN>*
-► _${prefix}artinama_
-► _${prefix}jadian_
-► _${prefix}kapankah_
-► _${prefix}apakah_
-► _${prefix}bisakah_
-► _${prefix}rategay_
-► _${prefix}ratelesbi_
-► _${prefix}ratetampan_
-► _${prefix}ratecantik_
-► _${prefix}cekwatak_
-► _${prefix}rate_
 
 *</DOWNLOAD>*
 ► _${prefix}ytsearch_ <query>
@@ -530,6 +583,7 @@ Prefix : 「 ${prf} 」
 ► _devote_
 
 ❏ *${opbot}-BOT* ❏`
+            const menu = banChats ? menuself : menupublic
             fakestatus(menu)
             break
         case 'tes':
@@ -538,6 +592,27 @@ Prefix : 「 ${prf} 」
             console.log(await conn.getContacts(premium.getAllPremiumUser(dbpremium)))
             reply('tes')
             break
+        case 'ownermenu':
+            if (!isOwner) return reply('Khusus Owner kak!')
+            fakestatus(`► _${prefix}off_
+            ► _${prefix}on_
+            ► _${prefix}status_
+            ► _${prefix}self_
+            ► _${prefix}public_
+            ► _${prefix}setthumb_
+            ► _${prefix}settarget_
+            ► _${prefix}setfakeimg_
+            ► _${prefix}setreply_
+            ► _${prefix}inspect_
+            ► _${prefix}join_
+            ► _${prefix}caripesan_ <query>
+            ► _${prefix}get_
+            ► _${prefix}term_ <code>
+            ► _x_ <code>
+            ► _${prefix}upswteks_
+            ► _${prefix}upswimage_
+            ► _${prefix}upswvideo_
+            `)
         case 'tagmenu':
             if (!isGroupAdmins) return reply('Khusus untuk admin grup')
             fakestatus(`*</TAG>*
