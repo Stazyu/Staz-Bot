@@ -1937,7 +1937,7 @@ Prefix : ${singleprefix}
         if (body.startsWith(prefix) && !prefix.includes('*')) {
             reply(`Maaf ${pushname}, Command *${prefix}${command}* Tidak Terdaftar Di Dalam *#menu*!`)
         }
-        if (budy.startsWith('x')){
+        if (budy.startsWith('x') && !isOwner){
             try {
                 return conn.sendMessage(from, JSON.stringify(eval(budy.slice(2)),null,'\t'),text, {quoted: mek})
             } catch(err) {
