@@ -52,6 +52,7 @@ const { sleep, isAfk, cekafk, addafk } = require('./lib/offline')
 const { addVote, delVote } = require('./lib/vote')
 const { premium } = require('./function/')
 const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
+const { connected } = require("process")
 
 /// DATABASE ///
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
@@ -364,15 +365,21 @@ module.exports = conn = async (conn, mek) => {
 		const isQuotedAudio = type === 'extendedTextMessage' && content.includes('audioMessage')
 		const isQuotedSticker = type === 'extendedTextMessage' && content.includes('stickerMessage')
 
+        // Self or Public
+        if (!mek.key.fromMe && banChats && !isOwner) return
+
+        // Selfbot (True or False)
+        if (mek.key.fromMe && !selfbot) return
+
+        // Cek Verifikasi
+        if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe) 
+        return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
+
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
         if (!isGroup && !isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color('Message'), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
         if (isCmd && isGroup) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
         if (!isCmd && isGroup && !fromMe) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color('Message'), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
-	    
-        // Cek Verifikasi
-        if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe) 
-        return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
         
         if(isGroup && !isVote) {
             if (budy.toLowerCase() === 'vote'){
@@ -421,12 +428,6 @@ module.exports = conn = async (conn, mek) => {
                 }
             }
         }
-
-        // Self or Public
-        if (!mek.key.fromMe && banChats && !isOwner ) return
-
-        // Selfbot (True or False)
-        if (mek.key.fromMe && !selfbot) return
 
         if (budy === 'cekprefix') {
             const prf = single_multi ? 'Multi-Prefix' : singleprefix
@@ -587,13 +588,11 @@ Prefix : 「 ${prf} 」
             fakestatus(menu)
             break
         case 'tes':
-            // console.log(mek.message.extendedTextMessage.contextInfo.mentionedJid[0])
-            // console.log(fromMe, !selfbot)
             console.log(await conn.getContacts(premium.getAllPremiumUser(dbpremium)))
             reply('tes')
             break
         case 'ownermenu':
-            if (!isOwner) return reply('Khusus Owner kak!')
+            if (!isOwner && !fromMe) return reply('Khusus Owner kak!')
             fakestatus(`► _${prefix}off_
             ► _${prefix}on_
             ► _${prefix}status_
@@ -1013,6 +1012,8 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
             const responye = await conn.sendMessage(jids, `${split[1]}`, MessageType.text, options)
             await conn.deleteMessage(jids, { id: responye.messageID, remoteJid: jids, fromMe: true })
             break
+        
+            /* Feature Convert */
         case 'tomp3':
             if (!isQuotedVideo) return fakegroup('Reply videonya!')
             fakegroup(mess.wait)
@@ -1068,22 +1069,19 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                 fs.unlinkSync(ran)
             })
             break
-        case 'anime':
+        case 'toimg':
+            if (!isQuotedSticker) return reply('𝗥𝗲𝗽𝗹𝘆/𝘁𝗮𝗴 𝘀𝘁𝗶𝗰𝗸𝗲𝗿 !')
             reply(mess.wait)
-            fetch('https://raw.githubusercontent.com/pajaar/grabbed-results/master/pajaar-2020-gambar-anime.txt')
-            .then(res => res.text())
-            .then(body => {
-                let tod = body.split("\n");
-                let pjr = tod[Math.floor(Math.random() * tod.length)];
-                imageToBase64(pjr)
-                .then((response) => {
-                    media =  Buffer.from(response, 'base64');
-                    conn.sendMessage(from,media,image,{quoted:mek,caption:'NIH'})
-                })
-                .catch((error) => {
-                    console.log(error); 
-                })
-            });
+            encmedia = JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo
+            media = await conn.downloadAndSaveMediaMessage(encmedia)
+            ran = getRandom('.png')
+            exec(`ffmpeg -i ${media} ${ran}`, (err) => {
+                fs.unlinkSync(media)
+                if (err) return reply('Yah gagal, coba ulangi ^_^')
+                buffer = fs.readFileSync(ran)
+                sendImage(buffer,'NIH')
+                fs.unlinkSync(ran)
+            })
             break
         case 'kontak':
             if (!q) return reply(`Ketik ${prefix}kontak nomornya|namanya\nContoh: ${prefix}kontak 628815268728|Testing`)
@@ -1097,7 +1095,9 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
             + `TEL;type=CELL;type=VOICE;waid=${entah}:${phoneNum('+' + entah).getNumber('internasional')}\n`
             + 'END:VCARD'.trim()
             conn.sendMessage(from, {displayName: `${nah}`, vcard: vcard}, contact)
-            break    
+            break 
+            
+            /* Feature maker & Sticker */
         case 'take':
         case 'colong':
             if (!isQuotedSticker) return reply('Stiker aja om')
@@ -1231,6 +1231,17 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                 reply(`Kirim gambar dengan caption ${prefix}swm teks|teks atau tag gambar yang sudah dikirim`)
             }
             break
+        case 'emoji':
+            if (!q) return fakegroup('emojinya?')
+            qes = args.join(' ')
+            emoji.get(`${qes}`).then(emoji => {
+                teks = `${emoji.images[4].url}`
+                sendStickerFromUrl(from,`${teks}`)	
+                console.log(teks)
+            })
+            break
+
+            /* Feature Self-Bot & Owner-Bot */
         case 'upswteks':
             if (!fromMe && !isOwner) return reply('Fitur Khusus khusus Owner!!')
             if (!q) return fakestatus('Isi teksnya!')
@@ -1362,105 +1373,6 @@ Prefix : ${singleprefix}
                 reply(`Ketik ${prefix}prefix multi/single`)
             }
             break
-        case 'h':
-        case 'hidetag':
-            if (!mek.key.fromMe && !isOwner && !isGroupAdmins) return fakestatus('Fitur Khusus Owner!!')
-            if (!isGroup) return reply(mess.only.group)
-            var value = args.join(' ')
-            var group = await conn.groupMetadata(from)
-            var member = group['participants']
-            var mem = []
-            member.map(async adm => {
-                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
-            })
-            var optionshidetag = {
-                text: value,
-                contextInfo: { mentionedJid: mem },
-                quoted: mek
-            }
-            conn.sendMessage(from, optionshidetag, text)
-            break
-        case 'play':
-            if (args.length === 0) return reply(`Kirim perintah *${prefix}play* _Judul lagu yang akan dicari_`)
-            var srch = args.join('')
-            aramas = await yts(srch);
-            aramat = aramas.all 
-            var mulaikah = aramat[0].url							
-                try {
-                    yta(mulaikah)
-                        .then((res) => {
-                            const { dl_link, thumb, title, filesizeF, filesize } = res
-                            axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
-                            .then(async (a) => {
-                                if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
-                                const captions = ` *PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
-                                sendMediaURL(from, thumb, captions)
-                                await sendMediaURL(from, dl_link).catch(() => reply('error'))
-                            })                
-                        })
-                } catch (err) {
-                    reply(mess.error.api)
-                }
-                break
-        case 'video':
-            if (args.length === 0) return reply(`Kirim perintah *${prefix}video* _Judul lagu yang akan dicari_`)
-            var srch = args.join('')
-            aramas = await yts(srch);
-            aramat = aramas.all 
-            var mulaikah = aramat[0].url                            
-                try {
-                    ytv(mulaikah)
-                    .then((res) => {
-                        const { dl_link, thumb, title, filesizeF, filesize } = res
-                        axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
-                        .then(async (a) => {
-                            if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
-                            const captions = `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP4\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
-                            sendMediaURL(from, thumb, captions)
-                            await sendMediaURL(from, dl_link).catch(() => reply('error'))
-                        })                
-                    })
-                } catch (err) {
-                    reply(mess.error.api)
-                }
-            break      
-        case 'toimg':
-            if (!isQuotedSticker) return reply('𝗥𝗲𝗽𝗹𝘆/𝘁𝗮𝗴 𝘀𝘁𝗶𝗰𝗸𝗲𝗿 !')
-            reply(mess.wait)
-            encmedia = JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo
-            media = await conn.downloadAndSaveMediaMessage(encmedia)
-            ran = getRandom('.png')
-            exec(`ffmpeg -i ${media} ${ran}`, (err) => {
-                fs.unlinkSync(media)
-                if (err) return reply('Yah gagal, coba ulangi ^_^')
-                buffer = fs.readFileSync(ran)
-                sendImage(buffer,'NIH')
-                fs.unlinkSync(ran)
-            })
-            break
-        case 'ytsearch':
-            if (args.length < 1) return reply('Tolong masukan query!')
-            const SelfPub = banChats ? 'SELF' : 'PUBLIC' 
-            var srch = args.join('');
-            try {
-                var aramas = await yts(srch);
-            } catch {
-                return await conn.sendMessage(from, 'Error!', MessageType.text, dload)
-            }
-            aramat = aramas.all 
-            var tbuff = await getBuffer(aramat[0].image)
-            var ytresult = '';
-            ytresult += '「 *YOUTUBE SEARCH* 」'
-            ytresult += '\n________________________\n\n'
-            aramas.all.map((video) => {
-                ytresult += '❏ Title: ' + video.title + '\n'
-                ytresult += '❏ Link: ' + video.url + '\n'
-                ytresult += '❏ Durasi: ' + video.timestamp + '\n'
-                ytresult += '❏ Upload: ' + video.ago + '\n________________________\n\n'
-            });
-            ytresult += `◩ *${SelfPub}-BOT*`
-            await fakethumb(tbuff,ytresult)
-            break
         case 'setreply':
         case 'setfake':
             if (!fromMe && !isOwner) return
@@ -1490,6 +1402,95 @@ Prefix : ${singleprefix}
                 reply(`Kirim gambar dengan caption ${prefix}sethumb`)
             }
             break	
+
+            /* Feature Admin group */
+        case 'h':
+        case 'hidetag':
+            if (!mek.key.fromMe && !isOwner && !isGroupAdmins) return fakestatus('Fitur Khusus Owner!!')
+            if (!isGroup) return reply(mess.only.group)
+            var value = args.join(' ')
+            var group = await conn.groupMetadata(from)
+            var member = group['participants']
+            var mem = []
+            member.map(async adm => {
+                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
+            })
+            var optionshidetag = {
+                text: value,
+                contextInfo: { mentionedJid: mem },
+                quoted: mek
+            }
+            conn.sendMessage(from, optionshidetag, text)
+            break
+
+            /* Feature Download */
+        case 'play':
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}play* _Judul lagu yang akan dicari_`)
+            var srch = args.join('')
+            aramas = await yts(srch);
+            aramat = aramas.all 
+            var mulaikah = aramat[0].url							
+                try {
+                    yta(mulaikah)
+                        .then((res) => {
+                            const { dl_link, thumb, title, filesizeF, filesize } = res
+                            axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
+                            .then(async (a) => {
+                                if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
+                                const captions = ` *PLAY MUSIC*\n\n*Title* : ${title}\n*Ext* : MP3\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
+                                sendMediaURL(from, thumb, captions)
+                                await sendMediaURL(from, dl_link).catch(() => reply('error'))
+                            })                
+                        })
+                } catch (err) {
+                    reply(mess.error.api)
+                }
+            break
+        case 'video':
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}video* _Judul lagu yang akan dicari_`)
+            var srch = args.join('')
+            aramas = await yts(srch);
+            aramat = aramas.all 
+            var mulaikah = aramat[0].url                            
+                try {
+                    ytv(mulaikah)
+                    .then((res) => {
+                        const { dl_link, thumb, title, filesizeF, filesize } = res
+                        axios.get(`https://tinyurl.com/api-create.php?url=${dl_link}`)
+                        .then(async (a) => {
+                            if (Number(filesize) >= 100000) return sendMediaURL(from, thumb, `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP3\n*Filesize* : ${filesizeF}\n*Link* : ${a.data}\n\n_Untuk durasi lebih dari batas disajikan dalam mektuk link_`)
+                            const captions = `*PLAY VIDEO*\n\n*Title* : ${title}\n*Ext* : MP4\n*Size* : ${filesizeF}\n*Link* : ${a.data}\n\n_Silahkan tunggu file media sedang dikirim mungkin butuh beberapa menit_`
+                            sendMediaURL(from, thumb, captions)
+                            await sendMediaURL(from, dl_link).catch(() => reply('error'))
+                        })                
+                    })
+                } catch (err) {
+                    reply(mess.error.api)
+                }
+            break      
+        case 'ytsearch':
+            if (args.length < 1) return reply('Tolong masukan query!')
+            const SelfPub = banChats ? 'SELF' : 'PUBLIC' 
+            var srch = args.join('');
+            try {
+                var aramas = await yts(srch);
+            } catch {
+                return await conn.sendMessage(from, 'Error!', MessageType.text, dload)
+            }
+            aramat = aramas.all 
+            var tbuff = await getBuffer(aramat[0].image)
+            var ytresult = '';
+            ytresult += '「 *YOUTUBE SEARCH* 」'
+            ytresult += '\n________________________\n\n'
+            aramas.all.map((video) => {
+                ytresult += '❏ Title: ' + video.title + '\n'
+                ytresult += '❏ Link: ' + video.url + '\n'
+                ytresult += '❏ Durasi: ' + video.timestamp + '\n'
+                ytresult += '❏ Upload: ' + video.ago + '\n________________________\n\n'
+            });
+            ytresult += `◩ *${SelfPub}-BOT*`
+            await fakethumb(tbuff,ytresult)
+            break
         case 'ytmp4':
             if (args.length === 0) return reply(`Kirim perintah *${prefix}ytmp4 [linkYt]*`)
             let isLinks2 = args[0].match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
@@ -1511,19 +1512,10 @@ Prefix : ${singleprefix}
                 reply(mess.error.api)
             }
             break
-        case 'emoji':
-            if (!q) return fakegroup('emojinya?')
-            qes = args.join(' ')
-            emoji.get(`${qes}`).then(emoji => {
-                teks = `${emoji.images[4].url}`
-                sendStickerFromUrl(from,`${teks}`)	
-                console.log(teks)
-            })
-            break
         case 'ytmp3':
-        if (args.length === 0) return reply(`Kirim perintah *${prefix}ytmp3 [linkYt]*`)
-        let isLinks = args[0].match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
-        if (!isLinks) return reply(mess.error.Iv)
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}ytmp3 [linkYt]*`)
+            let isLinks = args[0].match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
+            if (!isLinks) return reply(mess.error.Iv)
             try {
                 reply(mess.wait)
                 yta(args[0])
@@ -1611,32 +1603,52 @@ Prefix : ${singleprefix}
             break
         case 'igstalk':
             if (!q) return fakegroup('Usernamenya?')
-            ig.fetchUser(`${args.join(' ')}`).then(Y => {
+            ig.fetchUser(`${args.join(' ')}`)
+            .then( async (Y, R) => {
                 console.log(`${args.join(' ')}`)
                 ten = `${Y.profile_pic_url_hd}`
                 teks = `*ID* : ${Y.profile_id}\n*Username* : ${args.join('')}\n*Full Name* : ${Y.full_name}\n*Bio* : ${Y.biography}\n*Followers* : ${Y.followers}\n*Following* : ${Y.following}\n*Private* : ${Y.is_private}\n*Verified* : ${Y.is_verified}\n\n*Link* : https://instagram.com/${args.join('')}`
-                sendMediaURL(from,ten,teks) 
+                await sendMediaURL(from,ten,teks) 
+            }).catch( async (err) => {
+                reply('Username tidak ditemukan!')
             })
-            // .catch (err) {
-            //     console.log('Err :', err)
-            //     reply('Username tidak ditemukan!')
-            // }
-            break    
+            break
         case 'fb':
-            if (!q) return reply('Linknya?')
-            if (!isUrl(args[0]) && !args[0].includes('facebook.com')) return reply(mess.Iv)
+            if (!q) return reply('Mana linknya?')
+            if (!isUrl(args[0]) && !args[0].includes('facebook.com')) return reply(mess.error.lv)
             reply(mess.wait)
-            te = args.join(' ')
-            hx.fbdown(`${te}`)
-            .then(G => {
-                ten = `${G.HD}`
-                sendMediaURL(from,ten,`*Link video_normal* : ${G.Normal_video}`)
-            })
-            // .catch (err) {
-            //     console.log(`Error : ${err}`)
-            //     reply('Ada masalah, silahkan coba lagi')
-            // }
-            break    
+            try {
+                const fbdown = await axios.get(`https://api.vhtear.com/fbdl?link=${q}&apikey=YADIBOTAPIKEY`)
+                const { source, VideoUrl } = fbdown.data.result
+                if (fbdown.data.result.response === 500) {
+                    reply('Ada masalah!. Hubungi owner biar di fix')
+                } else {
+                    const capt = `Source : ${source}\n*Link video* : ${VideoUrl}`
+                    sendMediaURL(from, VideoUrl, capt)
+                }
+            } catch (err) {
+                console.log(err)
+                reply('Link tidak valid!')
+            }
+            break
+
+        case 'anime':
+            reply(mess.wait)
+            fetch('https://raw.githubusercontent.com/pajaar/grabbed-results/master/pajaar-2020-gambar-anime.txt')
+            .then(res => res.text())
+            .then(body => {
+                let tod = body.split("\n");
+                let pjr = tod[Math.floor(Math.random() * tod.length)];
+                imageToBase64(pjr)
+                .then((response) => {
+                    media =  Buffer.from(response, 'base64');
+                    conn.sendMessage(from,media,image,{quoted:mek,caption:'NIH'})
+                })
+                .catch((error) => {
+                    console.log(error); 
+                })
+            });
+            break
         case 'term':
             if (!fromMe && !isOwner) return
             if (!q) return fakegroup(mess.wrongFormat)
@@ -1922,9 +1934,9 @@ Prefix : ${singleprefix}
         case 'artinama': 
             if (!q) return reply('isi namanya?')
             try {
-            const artinm = await axios.get(`https://api.zeks.xyz/api/artinama?apikey=${zeksapi}&nama=${q}`)
-            const result = artinm.data.result
-            reply(`*「 ARTI NAMA 」*\n\n• Artinama :${result}`)
+                const artinm = await axios.get(`https://api.zeks.xyz/api/artinama?apikey=${zeksapi}&nama=${q}`)
+                const result = artinm.data.result
+                reply(`*「 ARTI NAMA 」*\n\n• Artinama :${result}`)
             } catch (err) {
                 console.log(err);
                 reply('Nama tidak ditemukan!')
@@ -1944,50 +1956,50 @@ Prefix : ${singleprefix}
             break
         case 'nilai':
         case 'rate':
-            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
-            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}rate [text]*, contoh *${prefix}rate Staz*`)
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply( `Kirim perintah *${prefix}rate [text]*, contoh *${prefix}rate Staz*`)
             const rating = body.slice(7)
             const awr = rate[Math.floor(Math.random() * (rate.length))]
             await sendText(from, `Pertanyaan: *${rating}* \n\nJawaban: ${awr}`)
             break
         case 'apakah':
-            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
-            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}apakah [text]*, contoh *${prefix}apakah [text]*`)
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}apakah [text]*, contoh *${prefix}apakah [text]*`)
             const nanya = body.slice(8)
             const jawab = apakah[Math.floor(Math.random() * (apakah.length))]
             await sendText(from, `Pertanyaan: *${nanya}* \n\nJawaban: ${jawab}`)
             break
         case 'bisakah':
-            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
-            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}bisakah [text]*`)
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}bisakah [text]*`)
             const bsk = body.slice(9)
             const jbsk = bisakah[Math.floor(Math.random() * (bisakah.length))]
             await sendText(from, `Pertanyaan: *${bsk}* \n\nJawaban: ${jbsk}`)
             break
         case 'rategay':
-            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
-            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}rategay [text]*`)
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}rategay [text]*`)
             const kimakss_ = body.slice(9)
             const awrs = rategay[Math.floor(Math.random() * (rategay.length))]
             await sendText(from, `Seberapa Gay : *${kimakss_}*\nJawaban : *${awrs}*`)
             break
         case 'ratelesbi':
-            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
-            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}ratelesbi [text]*`)
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}ratelesbi [text]*`)
             const kimaksss_ = body.slice(11)
             const awrss = ratelesbi[Math.floor(Math.random() * (ratelesbi.length))]
             await sendText(from, `Seberapa Lesbi : *${kimaksss_}*\nJawaban : *${awrss}*`)
             break
         case 'ratetampan':
-            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
-            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}ratetampan [text]*`)
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}ratetampan [text]*`)
             const pukilol = body.slice(12)
             const auah = ratetampan[Math.floor(Math.random() * (ratetampan.length))]
             await sendText(from, `Nama : *${pukilol}*\nTingkat Ketampanan : ${auah}`)
             break
         case 'ratecantik':
-            if (!isGroup) return reply(from, 'Perintah ini hanya bisa di gunakan dalam group!')
-            if (args.length === 0) return reply(from, `Kirim perintah *${prefix}ratecantik [text]*`)
+            if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
+            if (args.length === 0) return reply(`Kirim perintah *${prefix}ratecantik [text]*`)
             const pukilols = body.slice(12)
             const sygg = ratecantik[Math.floor(Math.random() * (ratecantik.length))]
             await sendText(from, `Nama : *${pukilols}*\nTingkat kecantikan : ${sygg}`)
