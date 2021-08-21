@@ -1596,20 +1596,21 @@ Prefix : ${singleprefix}
                     }
                 }
             })
-            // .catch (err) {
-            //     console.log(`Err : ${err}`)
-            //     reply('Ada masalah, coba di ulang')
-            // }
+            .catch (err => {
+                console.log(`Error : ${err}`)
+                reply('Ada masalah atau link tidak valid!, coba di ulang lagi')
+            })
             break
         case 'igstalk':
             if (!q) return fakegroup('Usernamenya?')
             ig.fetchUser(`${args.join(' ')}`)
-            .then( async (Y, R) => {
+            .then( async (Y) => {
                 console.log(`${args.join(' ')}`)
                 ten = `${Y.profile_pic_url_hd}`
                 teks = `*ID* : ${Y.profile_id}\n*Username* : ${args.join('')}\n*Full Name* : ${Y.full_name}\n*Bio* : ${Y.biography}\n*Followers* : ${Y.followers}\n*Following* : ${Y.following}\n*Private* : ${Y.is_private}\n*Verified* : ${Y.is_verified}\n\n*Link* : https://instagram.com/${args.join('')}`
                 await sendMediaURL(from,ten,teks) 
             }).catch( async (err) => {
+                console.log(err)
                 reply('Username tidak ditemukan!')
             })
             break
