@@ -42,7 +42,7 @@ const toMs = require('ms')
 const { error } = require("qrcode-terminal")
 
 /// LOAD FILE ///
-const { getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, banner, start, info, success, close } = require('./lib/functions')
+const { wait, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, banner, start, info, success, close } = require('./lib/functions')
 const { color, bgcolor } = require('./lib/color')
 const { fetchJson, getBase64, kyun, createExif } = require('./lib/fetcher')
 const { yta, ytv, igdl, upload, formatDate } = require('./lib/ytdl')
@@ -364,6 +364,7 @@ module.exports = conn = async (conn, mek) => {
 		const isQuotedVideo = type === 'extendedTextMessage' && content.includes('videoMessage')
 		const isQuotedAudio = type === 'extendedTextMessage' && content.includes('audioMessage')
 		const isQuotedSticker = type === 'extendedTextMessage' && content.includes('stickerMessage')
+        const isQuotedText = type === 'extendedTextMessage' && content.includes('conversation')
 
         // Self or Public
         if (!mek.key.fromMe && banChats && !isOwner) return
@@ -429,6 +430,7 @@ module.exports = conn = async (conn, mek) => {
             }
         }
 
+        // Cek Prefix
         if (budy === 'cekprefix') {
             const prf = single_multi ? 'Multi-Prefix' : singleprefix
             reply(`Prefix : ${prf}`)
@@ -1632,7 +1634,21 @@ Prefix : ${singleprefix}
                 reply('Link tidak valid!')
             }
             break
+        case 'twitter':
+            if (!isUrl(args[0]) && !args[0].includes('twitter.com')) return reply(mess.Iv)
+            if (!q) return fakegroup('Linknya?')
+            try {
+                ten = args[0]
+                var res = await hx.twitter(`${ten}`)
+                ren = `${g.HD}`
+                sendMediaURL(from,ren,'DONE')
+            } catch (err) {
+                console.log(`Error : ${err}`);
+                reply('Ada masalah, silahkan di coba lagi')
+            }
+            break
 
+            // Feature Anime
         case 'anime':
             reply(mess.wait)
             fetch('https://raw.githubusercontent.com/pajaar/grabbed-results/master/pajaar-2020-gambar-anime.txt')
@@ -1649,6 +1665,20 @@ Prefix : ${singleprefix}
                     console.log(error); 
                 })
             });
+            break
+        case 'wait':
+            if ((isMedia && !isVideo || isQuotedImage) && args.length == 0) {
+                reply(mess.wait)
+                const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                const media = await conn.downloadMediaMessage(encmedia)
+                await wait(media).then(res => {
+                    conn.sendMessage(from, res.video, video, { quoted : res.teks.trim()})
+                }).catch(err => {
+                    reply(err)
+                })
+            } else {
+                reply('Foto aja kak')
+            }
             break
         case 'term':
             if (!fromMe && !isOwner) return
@@ -1672,19 +1702,6 @@ Prefix : ${singleprefix}
                 fakestatus('SUKSES')
             } catch {
                 fakegroup('LINK ERROR!')
-            }
-            break
-        case 'twitter':
-            if (!isUrl(args[0]) && !args[0].includes('twitter.com')) return reply(mess.Iv)
-            if (!q) return fakegroup('Linknya?')
-            try {
-            ten = args[0]
-            var res = await hx.twitter(`${ten}`)
-            ren = `${g.HD}`
-            sendMediaURL(from,ren,'DONE')
-            } catch (err) {
-                console.log(`Error : ${err}`);
-                reply('Ada masalah, silahkan di coba lagi')
             }
             break
         case 'verify':
