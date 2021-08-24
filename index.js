@@ -46,13 +46,12 @@ const { wait, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, bann
 const { color, bgcolor } = require('./lib/color')
 const { fetchJson, getBase64, kyun, createExif } = require('./lib/fetcher')
 const { yta, ytv, igdl, upload, formatDate } = require('./lib/ytdl')
-const { webp2mp4File } = require('./lib/webp2mp4')
+const { webp2gifFile } = require('./lib/webp2mp4')
 const time = moment().tz('Asia/Jakarta').format("HH:mm:ss")
 const { sleep, isAfk, cekafk, addafk } = require('./lib/offline')
 const { addVote, delVote } = require('./lib/vote')
 const { premium } = require('./function/')
 const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
-const { connected } = require("process")
 
 /// DATABASE ///
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
@@ -195,8 +194,8 @@ module.exports = conn = async (conn, mek) => {
             conn.sendMessage(from, teks, text, {quoted:mek})
         }
 
-        const sendText = (hehe, teks) => {
-            conn.sendMessage(hehe, teks, text)
+        const sendText = (from, teks) => {
+            conn.sendMessage(from, teks, text)
         }
 
         const mentions = (teks, memberr, id) => {
@@ -448,6 +447,10 @@ module.exports = conn = async (conn, mek) => {
             let menupublic = `Hai ${pushname}
 Prefix : 「 ${prf} 」
 
+*</ADMIN-GROUP>*
+► _${prefix}hidetag_ <Teks>
+► _${prefix}linkgroup_
+
 *</MAKER>*
 ► _${prefix}sticker_
 ► _${prefix}swm_ <author|packname>
@@ -502,6 +505,7 @@ Prefix : 「 ${prf} 」
 *</OTHER>*
 ► _cekprefix_
 ► _${prefix}ping_
+► _${prefix}math_
 
 *</VOTE>*
 ► _${prefix}voting_
@@ -851,29 +855,6 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                 reply('Ada masalah!')
             }
             break
-        case 'on':
-            if (!mek.key.fromMe) return 
-            offline = false
-            fakestatus(' ```ANDA TELAH ONLINE``` ')
-            break       
-        case 'status':
-            fakestatus(`*STATUS*\n${offline ? '> OFFLINE' : '> ONLINE'}\n${banChats ? '> SELF-MODE' : '> PUBLIC-MODE'}\n${selfbot ? '> SELFBOT ON' : '> SELFBOT OFF'}`)
-            break
-        case 'off':
-            if (!mek.key.fromMe) return 
-            offline = true
-            waktu = Date.now()
-            anuu = q ? q : '-'
-            alasan = anuu
-            fakestatus(' ```ANDA TELAH OFFLINE``` ')
-            break   
-        case 'get':
-            if(!q) return reply('linknya?')
-            fetch(`${args[0]}`).then(res => res.text())  
-            .then(bu =>{
-                fakestatus(bu)
-            })   
-            break
         case 'kontag':
             if (!mek.key.fromMe && !isOwner) return reply('SELF-BOT')
             pe = args.join('')
@@ -1030,6 +1011,28 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                 fs.unlinkSync(ran)
             })
             break
+        case 'tomp4':
+            if ((isMedia && !mek.message.videoMessage || isQuotedSticker) && args.length == 0) {
+                ger = isQuotedSticker ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                owgi = await conn.downloadAndSaveMediaMessage(ger)
+                webp2gifFile(owgi).then(res=>{
+                    sendMediaURL(from,res.result,'Done')
+                })
+            } else {
+                reply('reply stiker')
+            }
+            fs.unlinkSync(owgi)
+            break
+        case 'tourl':
+            if ((isMedia && !mek.message.videoMessage || isQuotedImage || isQuotedVideo ) && args.length == 0) {
+                boij = isQuotedImage || isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
+                owgi = await conn.downloadMediaMessage(boij)
+                res = await upload(owgi)
+                reply(res)
+            } else {
+                reply('kirim/reply gambar/video')
+            }
+            break	
         case 'fast':
             if (!isQuotedVideo) return fakegroup('Reply videonya!')
             fakegroup(mess.wait)
@@ -1155,6 +1158,7 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                         fs.unlinkSync(media)
                         tipe = media.endsWith('.mp4') ? 'video' : 'gif'
                         //amek.reply(from, mess.error.api, mek)
+                        reply(mess.error.stick)
                     })
                     .on('end', function () {
                         console.log('Finish')
@@ -1423,6 +1427,88 @@ Prefix : ${singleprefix}
                 quoted: mek
             }
             conn.sendMessage(from, optionshidetag, text)
+            break
+        case 'totag':
+            if ((isMedia && !mek.message.videoMessage || isQuotedSticker) && args.length == 0) {
+                encmedia = isQuotedSticker ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
+                value = args.join(" ")
+                var group = await conn.groupMetadata(from)
+                var member = group['participants']
+                var mem = []
+                member.map(async adm => {
+                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
+                })
+                var options = {
+                    contextInfo: { mentionedJid: mem },
+                    quoted: mek
+                }
+                ini_buffer = fs.readFileSync(file)
+                conn.sendMessage(from, ini_buffer, sticker, options)
+                fs.unlinkSync(file)
+            } else if ((isMedia && !mek.message.videoMessage || isQuotedImage) && args.length == 0) {
+                encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
+                value = args.join(" ")
+                var group = await conn.groupMetadata(from)
+                var member = group['participants']
+                var mem = []
+                member.map(async adm => {
+                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
+                })
+                var options = {
+                    contextInfo: { mentionedJid: mem },
+                    quoted: mek
+                }
+                ini_buffer = fs.readFileSync(file)
+                conn.sendMessage(from, ini_buffer, image, options)
+                fs.unlinkSync(file)
+            } else if ((isMedia && !mek.message.videoMessage || isQuotedAudio) && args.length == 0) {
+                encmedia = isQuotedAudio ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
+                value = args.join(" ")
+                var group = await conn.groupMetadata(from)
+                var member = group['participants']
+                var mem = []
+                member.map(async adm => {
+                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
+                })
+                var options = {
+                    mimetype : 'audio/mp4',
+                    ptt : true,
+                    contextInfo: { mentionedJid: mem },
+                    quoted: mek
+                }
+                ini_buffer = fs.readFileSync(file)
+                conn.sendMessage(from, ini_buffer, audio, options)
+                fs.unlinkSync(file)
+            } else if ((isMedia && !mek.message.videoMessage || isQuotedVideo) && args.length == 0) {
+                encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
+                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
+                value = args.join(" ")
+                var group = await conn.groupMetadata(from)
+                var member = group['participants']
+                var mem = []
+                member.map(async adm => {
+                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
+                })
+                var options = {
+                    mimetype : 'video/mp4',
+                    contextInfo: { mentionedJid: mem },
+                    quoted: mek
+                }
+                ini_buffer = fs.readFileSync(file)
+                conn.sendMessage(from, ini_buffer, video, options)
+                fs.unlinkSync(file)
+            } else{
+                reply(`reply gambar/sticker/audio/video dengan caption ${prefix}totag`)
+            }
+            break
+        case 'linkgroup':
+            if(!isGroup) return reply('Khusus group kak')
+            if(!isGroupAdmins) return reply('Khusus admin group kak!')
+            const linkgc = await conn.groupInviteCode(from)
+            sendText(from, 'https://chat.whatsapp.com/' + linkgc)
             break
 
             /* Feature Download */
@@ -1746,6 +1832,11 @@ Prefix : ${singleprefix}
                 sendMediaURL(from, pporang, verif)
             }
             break
+
+        // Feature Other
+        case 'waktu':
+            reply(`Waktu Indonesia Barat: *${moment().utcOffset('+0700').format('HH:mm')}* WIB \nWaktu Indonesia Tengah: *${moment().utcOffset('+0800').format('HH:mm')}* WITA \nWaktu Indonesia Timur: *${moment().utcOffset('+0900').format('HH:mm')}* WIT`)
+            break
         case 'runtime':
         case 'test':
             run = process.uptime() 
@@ -1765,105 +1856,30 @@ Prefix : ${singleprefix}
                 const pingnya = `*${teks}Speed: ${latensi.toFixed(4)} Second*`
                 fakegroup(pingnya)
             })
-            break  
-        case 'totag':
-            if ((isMedia && !mek.message.videoMessage || isQuotedSticker) && args.length == 0) {
-                encmedia = isQuotedSticker ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
-                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
-                value = args.join(" ")
-                var group = await conn.groupMetadata(from)
-                var member = group['participants']
-                var mem = []
-                member.map(async adm => {
-                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
-                })
-                var options = {
-                    contextInfo: { mentionedJid: mem },
-                    quoted: mek
-                }
-                ini_buffer = fs.readFileSync(file)
-                conn.sendMessage(from, ini_buffer, sticker, options)
-                fs.unlinkSync(file)
-            } else if ((isMedia && !mek.message.videoMessage || isQuotedImage) && args.length == 0) {
-                encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
-                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
-                value = args.join(" ")
-                var group = await conn.groupMetadata(from)
-                var member = group['participants']
-                var mem = []
-                member.map(async adm => {
-                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
-                })
-                var options = {
-                    contextInfo: { mentionedJid: mem },
-                    quoted: mek
-                }
-                ini_buffer = fs.readFileSync(file)
-                conn.sendMessage(from, ini_buffer, image, options)
-                fs.unlinkSync(file)
-            } else if ((isMedia && !mek.message.videoMessage || isQuotedAudio) && args.length == 0) {
-                encmedia = isQuotedAudio ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
-                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
-                value = args.join(" ")
-                var group = await conn.groupMetadata(from)
-                var member = group['participants']
-                var mem = []
-                member.map(async adm => {
-                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
-                })
-                var options = {
-                    mimetype : 'audio/mp4',
-                    ptt : true,
-                    contextInfo: { mentionedJid: mem },
-                    quoted: mek
-                }
-                ini_buffer = fs.readFileSync(file)
-                conn.sendMessage(from, ini_buffer, audio, options)
-                fs.unlinkSync(file)
-            } else if ((isMedia && !mek.message.videoMessage || isQuotedVideo) && args.length == 0) {
-                encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
-                file = await conn.downloadAndSaveMediaMessage(encmedia, filename = getRandom())
-                value = args.join(" ")
-                var group = await conn.groupMetadata(from)
-                var member = group['participants']
-                var mem = []
-                member.map(async adm => {
-                mem.push(adm.id.replace('c.us', 's.whatsapp.net'))
-                })
-                var options = {
-                    mimetype : 'video/mp4',
-                    contextInfo: { mentionedJid: mem },
-                    quoted: mek
-                }
-                ini_buffer = fs.readFileSync(file)
-                conn.sendMessage(from, ini_buffer, video, options)
-                fs.unlinkSync(file)
-            } else{
-                reply(`reply gambar/sticker/audio/video dengan caption ${prefix}totag`)
-            }
             break
-        case 'tomp4':
-            if ((isMedia && !mek.message.videoMessage || isQuotedSticker) && args.length == 0) {
-                ger = isQuotedSticker ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
-                owgi = await conn.downloadAndSaveMediaMessage(ger)
-                webp2mp4File(owgi).then(res=>{
-                    sendMediaURL(from,res.result,'Done')
-                })
-            } else {
-                reply('reply stiker')
-            }
-            fs.unlinkSync(owgi)
+        case 'on':
+            if (!mek.key.fromMe) return 
+            offline = false
+            fakestatus(' ```ANDA TELAH ONLINE``` ')
+            break       
+        case 'status':
+            fakestatus(`*STATUS*\n${offline ? '> OFFLINE' : '> ONLINE'}\n${banChats ? '> SELF-MODE' : '> PUBLIC-MODE'}\n${selfbot ? '> SELFBOT ON' : '> SELFBOT OFF'}`)
             break
-        case 'tourl':
-            if ((isMedia && !mek.message.videoMessage || isQuotedImage || isQuotedVideo ) && args.length == 0) {
-                boij = isQuotedImage || isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
-                owgi = await conn.downloadMediaMessage(boij)
-                res = await upload(owgi)
-                reply(res)
-            } else {
-                reply('kirim/reply gambar/video')
-            }
-            break	
+        case 'off':
+            if (!mek.key.fromMe) return 
+            offline = true
+            waktu = Date.now()
+            anuu = q ? q : '-'
+            alasan = anuu
+            fakestatus(' ```ANDA TELAH OFFLINE``` ')
+            break   
+        case 'get':
+            if(!q) return reply('linknya?')
+            fetch(`${args[0]}`).then(res => res.text())  
+            .then(bu =>{
+                fakestatus(bu)
+            })   
+            break
         case 'inspect':
             try {
                 if (!isUrl(args[0]) && !args[0].includes('whatsapp.com')) return reply(mess.Iv)

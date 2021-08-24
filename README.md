@@ -72,6 +72,7 @@
 | TOTAG |✅|
 | ADD |✅|
 | KICK |✅|
+| LINKGROUP |✅|
 
 | MAKER |✅|
 | ------------- | ------------- |
@@ -145,6 +146,7 @@
 | GET |✅|
 | TERM |✅|
 | X |✅|
+| WAKTU |✅|
 
   ## Big Thanks To🙏
 * [`Baileys`](https://github.com/adiwajshing/Baileys) <b>(library)</b>
