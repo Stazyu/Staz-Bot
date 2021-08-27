@@ -50,12 +50,15 @@ const { webp2gifFile } = require('./lib/webp2mp4')
 const time = moment().tz('Asia/Jakarta').format("HH:mm:ss")
 const { sleep, isAfk, cekafk, addafk } = require('./lib/offline')
 const { addVote, delVote } = require('./lib/vote')
-const { premium } = require('./function/')
+const { premium, sewa } = require('./function/')
 const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
+const { send } = require("process")
+const { expiredCheck } = require("./function/sewa")
 
 /// DATABASE ///
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
 let dbverify = JSON.parse(fs.readFileSync('./lib/database/user/verify.json'))
+let dbsewa = JSON.parse(fs.readFileSync('./lib/database/group/sewa.json'))
 let setting = JSON.parse(fs.readFileSync('./setting.json'))
 let voting = JSON.parse(fs.readFileSync('./lib/voting.json'))
 let afk = JSON.parse(fs.readFileSync('./lib/off.json'))
@@ -146,7 +149,7 @@ module.exports = conn = async (conn, mek) => {
 		const totalchat = await conn.chats.all()
 		const groupMetadata = isGroup ? await conn.groupMetadata(from) : ''
 		const groupName = isGroup ? groupMetadata.subject : ''
-		const groupId = isGroup ? groupMetadata.jid : ''
+		const groupId = isGroup ? groupMetadata.id : ''
 		const groupMembers = isGroup ? groupMetadata.participants : ''
 		const groupDesc = isGroup ? groupMetadata.desc : ''
 		const groupOwner = isGroup ? groupMetadata.owner : ''
@@ -165,13 +168,11 @@ module.exports = conn = async (conn, mek) => {
 
         const isPremium = premium.checkPremiumUser(senderid, dbpremium)
 
-
-        premium.expiredCheck(dbpremium)
-
         //MESS
 		const mess = {
             wait: '⌛ Sedang di Prosess ⌛',
             success: '✔️ Berhasil ✔️',
+            botout: 'Terima kasih sudah menyewa Staz-Bot, bila mau berlangganan chat owner bot',
             error: {
                 stick: '❌ Gagal, terjadi kesalahan saat mengkonversi gambar ke sticker ❌',
                 Iv: '❌ Link tidak valid ❌'
@@ -185,6 +186,9 @@ module.exports = conn = async (conn, mek) => {
                 Botadmin: '❌ Perintah ini hanya bisa di gunakan ketika bot menjadi admin! ❌'
             }
         }
+
+        premium.expiredCheck(dbpremium)
+        sewa.expiredCheck(dbsewa, conn, mess.botout)
 
 		const isUrl = (url) => {
         return url.match(new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%.+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%+.~#?&/=]*)/, 'gi'))
@@ -242,9 +246,11 @@ module.exports = conn = async (conn, mek) => {
                 }
             })
         }
+
         const fakethumb = (teks, yes) => {
             conn.sendMessage(from, teks, image, {thumbnail:fs.readFileSync('./stik/fake.jpeg'),quoted:mek,caption:yes})
         }
+
         const fakegroup = (teks) => {
             conn.sendMessage(from, teks, text, {
                 quoted: {
@@ -272,55 +278,67 @@ module.exports = conn = async (conn, mek) => {
                 }
             })
         }
+
         const sendStickerFromUrl = async(to, url) => {
-                var names = Date.now() / 10000;
-                var download = function (uri, filename, callback) {
-                    request.head(uri, function (err, res, body) {
-                        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
-                    });
-                };
-                download(url, './stik' + names + '.png', async function () {
-                    console.log('selesai');
-                    let filess = './stik' + names + '.png'
-                    let asw = './stik' + names + '.webp'
-                    exec(`ffmpeg -i ${filess} -vcodec libwebp -filter:v fps=fps=20 -lossless 1 -loop 0 -preset default -an -vsync 0 -s 512:512 ${asw}`, (err) => {
-                        let media = fs.readFileSync(asw)
-                        conn.sendMessage(to, media, MessageType.sticker,{quoted:mek})
-                        fs.unlinkSync(filess)
-                        fs.unlinkSync(asw)
-                    });
+            var names = Date.now() / 10000;
+            var download = function (uri, filename, callback) {
+                request.head(uri, function (err, res, body) {
+                    request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
                 });
+            };
+            download(url, './stik' + names + '.png', async function () {
+                console.log('selesai');
+                let filess = './stik' + names + '.png'
+                let asw = './stik' + names + '.webp'
+                exec(`ffmpeg -i ${filess} -vcodec libwebp -filter:v fps=fps=20 -lossless 1 -loop 0 -preset default -an -vsync 0 -s 512:512 ${asw}`, (err) => {
+                    let media = fs.readFileSync(asw)
+                    conn.sendMessage(to, media, MessageType.sticker,{quoted:mek})
+                    fs.unlinkSync(filess)
+                    fs.unlinkSync(asw)
+                });
+            });
+        }
+
+        const sendMediaURL = async(to, url, text="", mids=[]) => {
+            if(mids.length > 0){
+                text = normalizeMention(to, text, mids)
             }
-        const sendMediaURL = async(to, url, text="", mids=[]) =>{
-                if(mids.length > 0){
-                    text = normalizeMention(to, text, mids)
-                }
-                const fn = Date.now() / 10000;
-                const filename = fn.toString()
-                let mime = ""
-                var download = function (uri, filename, callback) {
-                    request.head(uri, function (err, res, body) {
-                        mime = res.headers['content-type']
-                        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
-                    });
-                };
-                download(url, filename, async function () {
-                    console.log('done');
-                    let media = fs.readFileSync(filename)
-                    let type = mime.split("/")[0]+"Message"
-                    if(mime === "image/gif"){
-                        type = MessageType.video
-                        mime = Mimetype.gif
-                    }
-                    if(mime.split("/")[0] === "audio"){
-                        mime = Mimetype.mp4Audio
-                    }
-                    conn.sendMessage(to, media, type, { quoted: mek, mimetype: mime, caption: text,contextInfo: {"mentionedJid": mids}})
-                    
-                    fs.unlinkSync(filename)
+            const fn = Date.now() / 10000;
+            const filename = fn.toString()
+            let mime = ""
+            var download = function (uri, filename, callback) {
+                request.head(uri, function (err, res, body) {
+                    mime = res.headers['content-type']
+                    request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
                 });
-            }   
-//FUNCTION
+            };
+            download(url, filename, async function () {
+                console.log('done');
+                let media = fs.readFileSync(filename)
+                let type = mime.split("/")[0]+"Message"
+                if(mime === "image/gif"){
+                    type = MessageType.video
+                    mime = Mimetype.gif
+                }
+                if(mime.split("/")[0] === "audio"){
+                    mime = Mimetype.mp4Audio
+                }
+                conn.sendMessage(to, media, type, { quoted: mek, mimetype: mime, caption: text,contextInfo: {"mentionedJid": mids}})
+                
+                fs.unlinkSync(filename)
+            });
+        }
+
+        const sendContact= (from, name, nomor) => {
+            const vcard = 'BEGIN:VCARD\n' // metadata of the contact card
+            + 'VERSION:3.0\n' 
+            + `FN:${name}\n` // full name
+            + 'ORG:Ashoka Uni;\n' // the organization of the contact
+            + `TEL;type=CELL;type=VOICE;waid=${nomor}:${phoneNum('+' + nomor).getNumber('internasional')}\n` // WhatsApp ID + phone number
+            + 'END:VCARD'
+            conn.sendMessage(from, {displayname: name, vcard: vcard}, contact)
+        } 
+            //FUNCTION
         cekafk(afk)
         if (!mek.key.remoteJid.endsWith('@g.us') && offline){
             if (!mek.key.fromMe){
@@ -594,7 +612,8 @@ Prefix : 「 ${prf} 」
             fakestatus(menu)
             break
         case 'tes':
-            console.log(await conn.getContacts(premium.getAllPremiumUser(dbpremium)))
+            console.log(ownerNumber[0].replace('@s.whatsapp.net', ''))
+            sendContact(from, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
             reply('tes')
             break
         case 'ownermenu':
@@ -1407,7 +1426,54 @@ Prefix : ${singleprefix}
             } else {
                 reply(`Kirim gambar dengan caption ${prefix}sethumb`)
             }
-            break	
+            break
+        case 'sewa':
+            if(!isOwner && !fromMe) return reply('Fitur khusu owner kak!')
+            if (args[0] === 'add') {
+                // if (!isUrl(args[1]) && !args[1].includes('whatsapp.com')) return reply(mess.error.Iv)
+                const linkwa = args[1]
+                if (linkwa.includes('https://chat.whatsapp.com')) {
+                    const linkk = linkwa.split('https://chat.whatsapp.com/')[1]
+                    if (!linkk) return reply('pastikan itu link https://whatsapp.com/')
+                    const resultlink = await conn.query({ 
+                        json: ["query", "invite", linkk],
+                        expect200: true 
+                    })
+                    const { id, subject } = resultlink
+                    await conn.acceptInvite(linkk)
+                    await reply('Oke. Siap masuk ke grup yang di sewa')
+                    await sendText(id, `Hello!! I was invited by ${pushname}\n\nSilahkan ketik${prefix}menu untuk melihat menu bot`)
+                    console.log(`id: ${id}\nSubject: ${subject}`)
+                    sewa.addSewaGroup(id, args[2], dbsewa)
+                        await sendText(id, `*「 SEWA ADDED 」*\n\n➸ *ID*: ${id}\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)\n\nBot Akan Keluar Secara Otomatis\nDalam waktu yang sudah di tentukan`)
+                        await sendContact(id, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
+                        await sendText(id, `*CHAT OWNER JIKA INGIN PERPANJANG DURASI ATAU SEWA BOT*`)
+                        await sendText(ownerNumber[0], `Sukses Menyewakan bot kedalam grup ${subject}\nSalin ID Dibawah Untuk Mendelete Sewaan Di Grup Tersebut\nDengan Ketik /sewa del IDnya`)
+                        await sendText(ownerNumber[0], 'IDGroup : ' + id)
+                } else if (groupId) {
+                    sewa.addSewaGroup(groupId, args[1], dbsewa)
+                        await sendText(groupId, `*「 SEWA ADDED 」*\n\n➸ *ID*: ${groupId}\n➸ *Expired*: ${ms(toMs(args[1])).days} day(s) ${ms(toMs(args[1])).hours} hour(s) ${ms(toMs(args[1])).minutes} minute(s)\n\nBot Akan Keluar Secara Otomatis\nDalam waktu yang sudah di tentukan`)
+                        await sendContact(groupId, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
+                        await sendText(groupId, `*CHAT OWNER JIKA INGIN PERPANJANG DURASI ATAU SEWA BOT*`)
+                        await sendText(ownerNumber[0], `Sukses Menyewakan bot kedalam grup ${groupName}\nSalin ID Dibawah Untuk Mendelete Sewaan Di Grup Tersebut\nDengan Ketik /sewa del IDnya`)
+                        await sendText(ownerNumber[0], 'IDGroup : ' + groupId)
+                }
+            } else if(args[0] === 'del') if (groupId) {
+                    dbsewa.splice(sewa.getSewaPosition(groupId, dbsewa), 1)
+                    fs.writeFileSync('./lib/database/group/sewa.json', JSON.stringify(dbsewa))
+                    await sendText(from, 'Sayonara')
+                    setTimeout(() => {
+                        conn.groupLeave(groupId)
+                    }, 2000);
+                } else if(args[1]) {
+                    dbsewa.splice(sewa.getSewaPosition(args[1], dbsewa), 1)
+                    fs.writeFileSync('./lib/database/group/sewa.json', JSON.stringify(dbsewa))
+                    await sendText(args[1], mess.botout)
+                    setTimeout(() => {
+                        conn.groupLeave(args[1])
+                    }, 2000);
+                }
+            break
 
             /* Feature Admin group */
         case 'h':
@@ -1832,6 +1898,7 @@ Prefix : ${singleprefix}
                 sendMediaURL(from, pporang, verif)
             }
             break
+            conn.sendMessage()
 
         // Feature Other
         case 'waktu':
