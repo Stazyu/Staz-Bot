@@ -1482,7 +1482,7 @@ Prefix : ${singleprefix}
         case 'ceksewa':
             if(!isSewa) return await reply('Kamu belum sewa bot!')
             const cek_expired = ms(sewa.getSewaExpired(groupId, dbsewa) - Date.now())
-            await reply(`* 「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cek_expired.days} day(s) ${cek_expired.hours} hour(s) ${cek_expired.minutes} minute(s)`)
+            await reply(`*「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cek_expired.days} day(s) ${cek_expired.hours} hour(s) ${cek_expired.minutes} minute(s)`)
             break
         case 'listsewa':
             let listsewa = '「 *SEWA GROUP LIST* 」\n\n'
