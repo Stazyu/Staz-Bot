@@ -637,6 +637,7 @@ Prefix : 「 ${prf} 」
             ► _${prefix}upswimage_
             ► _${prefix}upswvideo_
             `)
+            break
         case 'tagmenu':
             if (!isGroupAdmins) return reply('Khusus untuk admin grup')
             fakestatus(`*</TAG>*
@@ -1426,7 +1427,7 @@ Prefix : ${singleprefix}
             } else {
                 reply(`Kirim gambar dengan caption ${prefix}sethumb`)
             }
-            break
+            break 
         case 'sewa':
             if(!isOwner && !fromMe) return reply('Fitur khusu owner kak!')
             if (args[0] === 'add') {
@@ -1898,7 +1899,6 @@ Prefix : ${singleprefix}
                 sendMediaURL(from, pporang, verif)
             }
             break
-            conn.sendMessage()
 
         // Feature Other
         case 'waktu':
