@@ -167,6 +167,7 @@ module.exports = conn = async (conn, mek) => {
         }
 
         const isPremium = premium.checkPremiumUser(senderid, dbpremium)
+        const isSewa = sewa.checkSewa(groupId, dbsewa)
 
         //MESS
 		const mess = {
@@ -1446,6 +1447,7 @@ Prefix : ${singleprefix}
                     await sendText(id, `Hello!! I was invited by ${pushname}\n\nSilahkan ketik${prefix}menu untuk melihat menu bot`)
                     console.log(`id: ${id}\nSubject: ${subject}`)
                     sewa.addSewaGroup(id, args[2], dbsewa)
+                        await sendText(groupId, 'Terima Kasih sudah menyewa bot kami, Semoga bermanfaat di grup ini ☺')
                         await sendText(id, `*「 SEWA ADDED 」*\n\n➸ *ID*: ${id}\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)\n\nBot Akan Keluar Secara Otomatis\nDalam waktu yang sudah di tentukan`)
                         await sendContact(id, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
                         await sendText(id, `*CHAT OWNER JIKA INGIN PERPANJANG DURASI ATAU SEWA BOT*`)
@@ -1453,6 +1455,7 @@ Prefix : ${singleprefix}
                         await sendText(ownerNumber[0], 'IDGroup : ' + id)
                 } else if (groupId) {
                     sewa.addSewaGroup(groupId, args[1], dbsewa)
+                        await sendText(groupId, 'Terima Kasih sudah menyewa bot kami, Semoga bermanfaat di grup ini ☺')
                         await sendText(groupId, `*「 SEWA ADDED 」*\n\n➸ *ID*: ${groupId}\n➸ *Expired*: ${ms(toMs(args[1])).days} day(s) ${ms(toMs(args[1])).hours} hour(s) ${ms(toMs(args[1])).minutes} minute(s)\n\nBot Akan Keluar Secara Otomatis\nDalam waktu yang sudah di tentukan`)
                         await sendContact(groupId, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
                         await sendText(groupId, `*CHAT OWNER JIKA INGIN PERPANJANG DURASI ATAU SEWA BOT*`)
@@ -1474,6 +1477,22 @@ Prefix : ${singleprefix}
                         conn.groupLeave(args[1])
                     }, 2000);
                 }
+            break
+        case 'sewacheck':
+        case 'ceksewa':
+            if(!isSewa) return await reply('Kamu belum sewa bot!')
+            const cek_expired = ms(sewa.getSewaExpired - Date.now())
+            await reply(`* 「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cek_expired.days} day(s) ${cek_expired.hours} hour(s) ${cek_expired.minutes} minute(s)`)
+            break
+        case 'listsewa':
+            let listsewa = '「 *SEWA GROUP LIST* 」\n\n'
+            let nomorListsewa = 0
+            const arraySewa = []
+            for (let i = 0; i < sewa.getAllSewa(dbsewa).length; i++) {
+                nomorListsewa++
+                listsewa += `${nomorListsewa}. ${sewa.getAllSewa(dbsewa)[i]}\n\n`
+            }
+            reply(listsewa)
             break
 
             /* Feature Admin group */
