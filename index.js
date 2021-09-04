@@ -1158,8 +1158,10 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                         exec(`webpmux -set exif ./stik/data.exif ./stik/${sender}.webp -o ./stik/${sender}.webp`, async (error) => {
                             if (error) return reply(mess.error.stick)
                             sendSticker(from, fs.readFileSync(`./stik/${sender}.webp`), mek)
-                            fs.unlinkSync(media)	
-                            fs.unlinkSync(`./stik/${sender}.webp`)	
+                            setTimeout(() => {
+                                fs.unlinkSync(media)	
+                                fs.unlinkSync(`./stik/${sender}.webp`)
+                            }, 2000);	
                         })
                     })
                     .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
@@ -1186,8 +1188,10 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                         exec(`webpmux -set exif ./stik/data.exif ./stik/${sender}.webp -o ./stik/${sender}.webp`, async (error) => {
                             if (error) return reply(mess.error.stick)
                             sendSticker(from, fs.readFileSync(`./stik/${sender}.webp`), mek)
-                            fs.unlinkSync(media)
-                            fs.unlinkSync(`./stik/${sender}.webp`)
+                            setTimeout(() => {
+                                fs.unlinkSync(media)
+                                fs.unlinkSync(`./stik/${sender}.webp`)  
+                            }, 2000);
                         })
                     })
                     .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
@@ -1219,9 +1223,11 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                     spawn('webpmux', ['-set','exif','./stik/data.exif', out, '-o', _out])
                     .on('exit', () => {
                         conn.sendMessage(from, fs.readFileSync(_out),'stickerMessage', { quoted: mek })
-                        fs.unlinkSync(out)
-                        fs.unlinkSync(_out)
-                        fs.unlinkSync(media)
+                        setTimeout(() => {
+                            fs.unlinkSync(out)
+                            fs.unlinkSync(_out)
+                            fs.unlinkSync(media)
+                        }, 2000);
                     })
                 })
                 .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
@@ -1246,9 +1252,11 @@ ${anime.desc}\n\n*Link Batch* : ${anime.batch}\n*Link Download SD* : ${anime.bat
                     spawn('webpmux', ['-set','exif','./stik/data.exif', out, '-o', _out])
                 .on('exit', () => {
                     conn.sendMessage(from, fs.readFileSync(_out),'stickerMessage', { quoted: mek })
-                    fs.unlinkSync(out)
-                    fs.unlinkSync(_out)
-                    fs.unlinkSync(media)
+                    setTimeout(() => {
+                        fs.unlinkSync(out)
+                        fs.unlinkSync(_out)
+                        fs.unlinkSync(media)
+                    }, 2000);
                 })
                 })
                 .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
