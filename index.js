@@ -393,12 +393,12 @@ module.exports = conn = async (conn, mek) => {
         if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe) 
         return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
 
-        // Filter Spam Message
-        addFilter(from)
-
         // Avoid Spam Message 
         if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), time, color(`${command} [${args.length}]`), 'from', color(pushname)) }
         if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), time, color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
+
+        // Filter Spam Message
+        addFilter(from)
 
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
