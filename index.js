@@ -52,8 +52,7 @@ const { sleep, isAfk, cekafk, addafk } = require('./lib/offline')
 const { addVote, delVote } = require('./lib/vote')
 const { premium, sewa } = require('./function/')
 const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
-const { send } = require("process")
-const { expiredCheck } = require("./function/sewa")
+const { addFilter, isFiltered} = require('./lib/msgfilter')
 
 /// DATABASE ///
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
@@ -394,6 +393,13 @@ module.exports = conn = async (conn, mek) => {
         if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe) 
         return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
 
+        // Filter Spam Message
+        addFilter(from)
+
+        // Avoid Spam Message 
+        if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname)) }
+        if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
+
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
         if (!isGroup && !isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color('Message'), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
@@ -613,8 +619,8 @@ Prefix : 「 ${prf} 」
             fakestatus(menu)
             break
         case 'tes':
-            console.log(ownerNumber[0].replace('@s.whatsapp.net', ''))
-            sendContact(from, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
+            console.log( await conn.fetchGroupMetadataFromWA('6288220181640-1625553640@g.us'))
+            // sendContact(from, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
             reply('tes')
             break
         case 'ownermenu':
@@ -1454,7 +1460,7 @@ Prefix : ${singleprefix}
                     await reply('Oke. Siap masuk ke grup yang di sewa')
                     await sendText(id, `Hello!! I was invited by ${pushname}\n\nSilahkan ketik${prefix}menu untuk melihat menu bot`)
                     console.log(`id: ${id}\nSubject: ${subject}`)
-                    sewa.addSewaGroup(id, args[2], dbsewa)
+                    sewa.addSewaGroup(id, subject, args[2], dbsewa)
                         await sendText(groupId, 'Terima Kasih sudah menyewa bot kami, Semoga bermanfaat di grup ini ☺')
                         await sendText(id, `*「 SEWA ADDED 」*\n\n➸ *ID*: ${id}\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)\n\nBot Akan Keluar Secara Otomatis\nDalam waktu yang sudah di tentukan`)
                         await sendContact(id, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
@@ -1462,7 +1468,8 @@ Prefix : ${singleprefix}
                         await sendText(ownerNumber[0], `Sukses Menyewakan bot kedalam grup ${subject}\nSalin ID Dibawah Untuk Mendelete Sewaan Di Grup Tersebut\nDengan Ketik /sewa del IDnya`)
                         await sendText(ownerNumber[0], 'IDGroup : ' + id)
                 } else if (groupId) {
-                    sewa.addSewaGroup(groupId, args[1], dbsewa)
+                    const { subject } = await conn.fetchGroupMetadataFromWA(groupId)
+                    sewa.addSewaGroup(groupId, subject, args[1], dbsewa)
                         await sendText(groupId, 'Terima Kasih sudah menyewa bot kami, Semoga bermanfaat di grup ini ☺')
                         await sendText(groupId, `*「 SEWA ADDED 」*\n\n➸ *ID*: ${groupId}\n➸ *Expired*: ${ms(toMs(args[1])).days} day(s) ${ms(toMs(args[1])).hours} hour(s) ${ms(toMs(args[1])).minutes} minute(s)\n\nBot Akan Keluar Secara Otomatis\nDalam waktu yang sudah di tentukan`)
                         await sendContact(groupId, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
@@ -1495,10 +1502,13 @@ Prefix : ${singleprefix}
         case 'listsewa':
             let listsewa = '「 *SEWA GROUP LIST* 」\n\n'
             let nomorListsewa = 0
-            const arraySewa = []
-            for (let i = 0; i < sewa.getAllSewa(dbsewa).length; i++) {
+            const arraySewa = sewa.getAllSewa(dbsewa)
+            for (let i = 0; i < arraySewa.length; i++) {
                 nomorListsewa++
-                listsewa += `${nomorListsewa}. ${sewa.getAllSewa(dbsewa)[i]}\n\n`
+                listsewa += `${nomorListsewa}. ${arraySewa[i].subject}\n`
+                listsewa += `   - Group Id : ${arraySewa[i].id}\n`
+                listsewa += `   - Sewa left : ${ms(arraySewa[i].expired - Date.now()).days} day(s) ${ms(arraySewa[i].expired - Date.now()).hours} hour(s) ${ms(arraySewa[i].expired - Date.now()).minutes} minute(s)\n`
+                listsewa += `   - type sewa : ${arraySewa[i].type}\n\n`
             }
             reply(listsewa)
             break

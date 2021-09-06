@@ -9,8 +9,19 @@ const { MessageType } = require('@adiwajshing/baileys')
  * @param {Object} _dir 
  */
 
-const addSewaGroup = (groupId, expired, _dir) => {
-    const obj = { id: groupId, expired: Date.now() + toMs(expired) }
+const addSewaGroup = (groupId, subject, expired, _dir) => {
+    const type = ['Trial 1 hari', 'Trial 7 hari', 'Langganan 1 bulan']
+    let typesewa = ''
+    if (expired === '1d') {
+        typesewa = type[0]
+    } else if (expired === '7d') {
+        typesewa = type[1]
+    } else if (expired === '30d' || '31d' || '32d' || '33d' || '34d' || '35d' || '36d' || '37d' && !('7d')) {
+        typesewa = type[2]
+    } else {
+        
+    }
+    const obj = { id: groupId, subject, expired: Date.now() + toMs(expired), type: typesewa }
     _dir.push(obj)
     fs.writeFileSync('./lib/database/group/sewa.json', JSON.stringify(_dir))
 }
@@ -99,7 +110,7 @@ const expiredCheck = (_dir , conn , message) => {
 const getAllSewa = (_dir) => {
     const array = []
     Object.keys(_dir).forEach((i) => {
-        array.push(_dir[i].id)
+        array.push(_dir[i])
     })
     return array
 }
