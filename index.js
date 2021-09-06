@@ -124,7 +124,7 @@ module.exports = conn = async (conn, mek) => {
         	const content = JSON.stringify(mek.message)
 		const from = mek.key.remoteJid
 		const { text, extendedText, contact, location, liveLocation, image, video, sticker, document, audio, product } = MessageType
-		const time = moment.tz('Asia/Jakarta').format('DD/MM HH:mm:ss')
+		const time = moment.tz('Asia/Jakarta').format('DD/MM/YY HH:mm:ss')
                 const type = Object.keys(mek.message)[0]        
                 const cmd = (type === 'conversation' && mek.message.conversation) ? mek.message.conversation : (type == 'imageMessage') && mek.message.imageMessage.caption ? mek.message.imageMessage.caption : (type == 'videoMessage') && mek.message.videoMessage.caption ? mek.message.videoMessage.caption : (type == 'extendedTextMessage') && mek.message.extendedTextMessage.text ? mek.message.extendedTextMessage.text : ''.slice(1).trim().split(/ +/).shift().toLowerCase()
                 const multiprefix = /^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*@,;]/.test(cmd) ? cmd.match(/^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*,;]/gi) : '-' 
@@ -397,8 +397,8 @@ module.exports = conn = async (conn, mek) => {
         addFilter(from)
 
         // Avoid Spam Message 
-        if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname)) }
-        if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), color(moment(t * 1000).format('DD/MM/YY HH:mm:ss'), 'yellow'), color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
+        if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), time, color(`${command} [${args.length}]`), 'from', color(pushname)) }
+        if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), time, color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
 
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
