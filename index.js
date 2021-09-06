@@ -394,8 +394,8 @@ module.exports = conn = async (conn, mek) => {
         return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
 
         // Avoid Spam Message 
-        if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), time, color(`${command} [${args.length}]`), 'from', color(pushname)) }
-        if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('[SPAM]', 'red'), time, color(`${command} [${args.length}]`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
+        if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('>> [SPAM]', 'red'), time, color(`${command}`), 'from', color(pushname)) }
+        if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('>> [SPAM]', 'red'), time, color(`${command}`), 'from', color(pushname), 'in', color(name || formattedTitle)) }
 
         // Filter Spam Message
         addFilter(from)
