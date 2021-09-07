@@ -39,7 +39,6 @@ const brainly = require('brainly-scraper')
 const yts = require( 'yt-search')
 const ms = require('parse-ms')
 const toMs = require('ms')
-const { error } = require("qrcode-terminal")
 
 /// LOAD FILE ///
 const { wait, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, banner, start, info, success, close } = require('./lib/functions')
@@ -53,6 +52,7 @@ const { addVote, delVote } = require('./lib/vote')
 const { premium, sewa } = require('./function/')
 const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
 const { addFilter, isFiltered} = require('./lib/msgfilter')
+const { addNotifBroadcast, checkIdBroadcast, getBroadcastPosition } = require('./function/notifbc')
 
 /// DATABASE ///
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
@@ -61,6 +61,7 @@ let dbsewa = JSON.parse(fs.readFileSync('./lib/database/group/sewa.json'))
 let setting = JSON.parse(fs.readFileSync('./setting.json'))
 let voting = JSON.parse(fs.readFileSync('./lib/voting.json'))
 let afk = JSON.parse(fs.readFileSync('./lib/off.json'))
+let db_notifbc = JSON.parse(fs.readFileSync('./lib/database/user/notif_broadcast.json'))
 
 offline = false
 targetpc = '6285751056816'
@@ -82,6 +83,14 @@ let {
 
 function banChat() {
     if (banChats == true) {
+        return false
+    } else {
+        return true
+    }
+}
+
+const isbctes = (chatId) => {
+    if (db_notifbc.includes(chatId)) {
         return false
     } else {
         return true
@@ -394,8 +403,8 @@ module.exports = conn = async (conn, mek) => {
         return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
 
         // Avoid Spam Message 
-        if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('>> [SPAM]', 'red'), time, color(`${command}`), 'from', color(pushname)), reply('Cooldown 5 detik. No spam!!')}
-        if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('>> [SPAM]', 'red'), time, color(`${command}`), 'from', color(pushname), 'in', color(groupName)), reply('Cooldown 5 detik. No spam!!')}
+        if (isCmd && isFiltered(from) && !isGroup && !isOwner && !isPremium) { return console.log(color('~> [SPAM]', 'red'), time, color(`${command}`), 'from', color(pushname)), reply('Cooldown 5 detik. No spam!!')}
+        if (isCmd && isFiltered(from) && isGroup && !isOwner && !isPremium) { return console.log(color('~> [SPAM]', 'red'), time, color(`${command}`), 'from', color(pushname), 'in', color(groupName)), reply('Cooldown 5 detik. No spam!!')}
 
         // Filter Spam Message
         addFilter(from)
@@ -415,19 +424,19 @@ module.exports = conn = async (conn, mek) => {
                 if(fil.includes(id_vote)) {
                     return mentions('@'+sender.split('@')[0]+' Anda sudah vote', fil, true)
                 } else {
-                vote.push({
-                    participant: id_vote,
-                    voting: '✅'
-                })
-                fs.writeFileSync(`./lib/${from}.json`,JSON.stringify(vote))
-                let _p = []
-                let _vote = '*Vote* '+ '@'+ _votes[0].votes.split('@')[0] + `\n\n*Alasan*: ${_votes[0].reason}\n*Jumlah Vote* : ${vote.length} Vote\n*Durasi* : ${_votes[0].durasi} Menit\n\n` 
-                for(let i = 0; i < vote.length; i++) {
-                    _vote +=  `@${vote[i].participant.split('@')[0]}\n*Vote* : ${vote[i].voting}\n\n`
-                    _p.push(vote[i].participant)
-                }  
-                _p.push(_votes[0].votes)
-                mentions(_vote,_p,true)   
+                    vote.push({
+                        participant: id_vote,
+                        voting: '✅'
+                    })
+                    fs.writeFileSync(`./lib/${from}.json`,JSON.stringify(vote))
+                    let _p = []
+                    let _vote = '*Vote* '+ '@'+ _votes[0].votes.split('@')[0] + `\n\n*Alasan*: ${_votes[0].reason}\n*Jumlah Vote* : ${vote.length} Vote\n*Durasi* : ${_votes[0].durasi} Menit\n\n` 
+                    for(let i = 0; i < vote.length; i++) {
+                        _vote +=  `@${vote[i].participant.split('@')[0]}\n*Vote* : ${vote[i].voting}\n\n`
+                        _p.push(vote[i].participant)
+                    }  
+                    _p.push(_votes[0].votes)
+                    mentions(_vote,_p,true)   
                 }
             } else if (budy.toLowerCase() === 'devote') {
                 const vote = JSON.parse(fs.readFileSync(`./lib/${from}.json`))
@@ -619,7 +628,16 @@ Prefix : 「 ${prf} 」
             fakestatus(menu)
             break
         case 'tes':
-            console.log( await conn.fetchGroupMetadataFromWA('6288220181640-1625553640@g.us'))
+            let total = []
+            for (let i of totalchat) {
+                if (checkIdBroadcast(i.jid)) {
+                    total.push(i.jid);
+                } else {
+                    console.log(i.jid);
+                }
+            }
+            // addNotifBroadcast(from)
+            // console.log(total)
             // sendContact(from, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
             reply('tes')
             break
@@ -669,21 +687,39 @@ Prefix : 「 ${prf} 」
                 let encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
                 let media = await conn.downloadMediaMessage(encmedia)
                 for (let i of chiit){
-                    conn.sendMessage(i.jid, media, image, {caption: q})
+                    if(checkIdBroadcast(i.jid)) {
+                        conn.sendMessage(i.jid, media, image, {caption: q})
+                    }
                 }
                 reply(`Sukses`)
             } else if (isVideo || isQuotedVideo) {
                 let encmedia = isQuotedVideo ? JSON.parse(JSON.stringify(mek).replace('quotedM', 'm')).message.extendedTextMessage.contextInfo : mek
                 let media = await conn.downloadMediaMessage(encmedia)
                 for (let i of chiit){
-                    conn.sendMessage(i.jid, media, video, {caption: q})
+                    if (checkIdBroadcast(i.jid)) {
+                        conn.sendMessage(i.jid, media, video, {caption: q})
+                    }
                 }
                 reply(`Sukses`)
             } else {
                 for (let i of chiit){
-                    conn.sendMessage(i.jid, q, text)
+                    if (checkIdBroadcast(i.jid)) {
+                        conn.sendMessage(i.jid, q, text)
+                    }
                 }
                 reply(`Sukses`)
+            }
+            break
+        case 'notifbc':
+            if (isGroup) return reply('Khusus di private')
+            if (args.length < 1) return reply(`Ketik ${prefix}notifbc on untuk mengaktifkan, untuk mematikan ketik ${prefix}notifbc off`)
+            if (args[0] === 'off') {
+                addNotifBroadcast(from)
+                reply(`Done. Anda sudah tidak menerima notifikasi lagi dari bot, bilang ingin menyalakan notifikasi dari bot ketik${prefix}notifbc on`)
+            } else if (args[0] === 'on') {
+                db_notifbc.splice(getBroadcastPosition(from), 1)
+                fs.writeFileSync('./lib/database/user/notif_broadcast.json', JSON.stringify(db_notifbc))
+                reply(`Done. Anda sekarang akan mendapatkan notifikasi dari bot tentang pembaruan bot dan lainnya, bila ingin mematikan ketik${prefix}notifbc off`)
             }
             break
         case 'add': 
