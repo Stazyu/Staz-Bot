@@ -147,6 +147,7 @@
 | TERM |✅|
 | X |✅|
 | WAKTU |✅|
+| NOTIFBC |✅|
 
   ## Big Thanks To🙏
 * [`Baileys`](https://github.com/adiwajshing/Baileys) <b>(library)</b>
