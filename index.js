@@ -540,6 +540,7 @@ Prefix : 「 ${prf} 」
 ► _cekprefix_
 ► _${prefix}ping_
 ► _${prefix}math_
+► _${prefix}notifbc_ <off/on>
 
 *</VOTE>*
 ► _${prefix}voting_
