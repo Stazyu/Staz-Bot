@@ -1,22 +1,21 @@
-const
-	{
-		WAConnection,
-		MessageType,
-		Presence,
-		MessageOptions,
-		Mimetype,
-		WALocationMessage,
-		WA_MESSAGE_STUB_TYPES,
-		WA_DEFAULT_EPHEMERAL,
-		ReconnectMode,
-		ProxyAgent,
-		GroupSettingChange,
-		waChatKey,
-		mentionedJid,
-		processTime,
-        BaileysError,
-        participant
-	} = require("@adiwajshing/baileys")
+const{
+    WAConnection,
+    MessageType,
+    Presence,
+    MessageOptions,
+    Mimetype,
+    WALocationMessage,
+    WA_MESSAGE_STUB_TYPES,
+    WA_DEFAULT_EPHEMERAL,
+    ReconnectMode,
+    ProxyAgent,
+    GroupSettingChange,
+    waChatKey,
+    mentionedJid,
+    processTime,
+    BaileysError,
+    participant
+} = require("@adiwajshing/baileys")
 const hx = require('hxz-api')
 const qrcode = require("qrcode-terminal")
 const moment = require("moment-timezone")
@@ -62,6 +61,7 @@ let setting = JSON.parse(fs.readFileSync('./setting.json'))
 let voting = JSON.parse(fs.readFileSync('./lib/voting.json'))
 let afk = JSON.parse(fs.readFileSync('./lib/off.json'))
 let db_notifbc = JSON.parse(fs.readFileSync('./lib/database/user/notif_broadcast.json'))
+let welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
 
 offline = false
 targetpc = '6285751056816'
@@ -484,6 +484,7 @@ Prefix : 「 ${prf} 」
 *</ADMIN-GROUP>*
 ► _${prefix}hidetag_ <Teks>
 ► _${prefix}linkgroup_
+► _${prefix}welcome_ <on/off>
 
 *</MAKER>*
 ► _${prefix}sticker_
@@ -667,11 +668,11 @@ Prefix : 「 ${prf} 」
         case 'tagmenu':
             if (!isGroupAdmins) return reply('Khusus untuk admin grup')
             fakestatus(`*</TAG>*
-        ► _${prefix}hidetag_
-        ► _${prefix}kontag_
-        ► _${prefix}sticktag_
-        ► _${prefix}totag_`
-            )
+► _${prefix}hidetag_
+► _${prefix}kontag_
+► _${prefix}sticktag_
+► _${prefix}totag_`
+    )
             break
         case 'funmenu':
             fakestatus(`*</FUN>*
@@ -1650,6 +1651,21 @@ Prefix : ${singleprefix}
             if(!isGroupAdmins) return reply('Khusus admin group kak!')
             const linkgc = await conn.groupInviteCode(from)
             sendText(from, 'https://chat.whatsapp.com/' + linkgc)
+            break
+        case 'welcome': 
+            // if (!isGroupAdmins) return reply('Maaf.. Fitur khusus admin grup!')
+            if (args.length < 1) return reply(`Kirim perintah ${prefix}welcome on atau off`)
+            if (args[0] === 'on') {
+                welcome.push(from)
+                fs.writeFileSync('./lib/database/group/welcome.json', JSON.stringify(welcome))
+                reply('Fitur Welcome telah diaktifkan')
+            } else if (args[0] === 'off') {
+                welcome.splice(from, 1)
+                fs.writeFileSync('./lib/database/group/welcome.json', JSON.stringify(welcome))
+                reply('Fitur Welcome telah dimatikan')
+            } else {
+                reply('Kirim perintah yang sesuai kak!')
+            }
             break
 
             /* Feature Download */
