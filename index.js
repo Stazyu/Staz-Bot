@@ -1653,7 +1653,7 @@ Prefix : ${singleprefix}
             sendText(from, 'https://chat.whatsapp.com/' + linkgc)
             break
         case 'welcome': 
-            // if (!isGroupAdmins) return reply('Maaf.. Fitur khusus admin grup!')
+            if (!isGroupAdmins) return reply('Maaf.. Fitur khusus admin grup!')
             if (args.length < 1) return reply(`Kirim perintah ${prefix}welcome on atau off`)
             if (args[0] === 'on') {
                 welcome.push(from)
