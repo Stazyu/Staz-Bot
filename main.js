@@ -42,7 +42,7 @@ const starts = async (conn = new WAConnection()) => {
 
     conn.on('group-participants-update', async (group) => {
         const welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
-        if (!welcome.includes(group.jid)) return
+        // if (!welcome.includes(group.jid)) return
         try {
             const mdata = await conn.groupMetadata(group.jid)
             console.log(group)
@@ -53,7 +53,7 @@ const starts = async (conn = new WAConnection()) => {
                 } catch {
                     ppimg = 'https://i0.wp.com/www.gambarunik.id/wp-content/uploads/2019/06/Top-Gambar-Foto-Profil-Kosong-Lucu-Tergokil-.jpg'
                 }
-                teks = `Halo @${num.split('@')[0]}\nSelamat datang di group *${mdata.subject}*`
+                const teks = capt_welcome(num, mdata.subject)
                 let buff = await getBuffer(ppimg)
                 conn.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
             } else if (group.action == 'remove') {
@@ -63,7 +63,7 @@ const starts = async (conn = new WAConnection()) => {
                 } catch {
                     ppimg = 'https://i0.wp.com/www.gambarunik.id/wp-content/uploads/2019/06/Top-Gambar-Foto-Profil-Kosong-Lucu-Tergokil-.jpg'
                 }
-                teks = `Sayonara @${num.split('@')[0]}👋`
+                const teks = capt_left(num, mdata.subject)
                 let buff = await getBuffer(ppimg)
                 conn.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
             }
@@ -101,4 +101,29 @@ function uncache(module = '.') {
     })
 }
 
+function capt_welcome(jid, name) {
+    return `Halo @${jid.replace('@s.whatsapp.net', '')} 👋\nWelcome to the *Grup ${name}*
+
+NewMem Tolong di Isi ya😊
+*Intro GC 「${name}」:*
+
+*>>Nama :*
+
+*>>Usia :*
+
+*>>Asal :*
+
+*>>Gender :*
+
+*>>Status Hubungan:*
+
+Salam Kenal👋
+
+※JanganLupaBacaDeskripsi😊
+※PatuhiPeraturanGC😊`
+}
+
+function capt_left(jid, name) {
+    return `Selamat Tinggal @${jid.replace('@s.whatsapp.net', '')} di Grup ${name} 👋. Semoga Sehat selalu di sana`
+}
 starts()
