@@ -42,10 +42,10 @@ const starts = async (conn = new WAConnection()) => {
 
     conn.on('group-participants-update', async (group) => {
         const welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
-        // if (!welcome.includes(group.jid)) return
+        if (!welcome.includes(group.jid)) return
         try {
             const mdata = await conn.groupMetadata(group.jid)
-            console.log(group)
+            // console.log(group)
             if (group.action == 'add') {
                 num = group.participants[0]
                 try {
