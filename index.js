@@ -40,7 +40,7 @@ const ms = require('parse-ms')
 const toMs = require('ms')
 
 /// LOAD FILE ///
-const { wait, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, banner, start, info, success, close } = require('./lib/functions')
+const { wait, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, banner, start, info, success, close, tanggal } = require('./lib/functions')
 const { color, bgcolor } = require('./lib/color')
 const { fetchJson, getBase64, kyun, createExif } = require('./lib/fetcher')
 const { yta, ytv, igdl, upload, formatDate } = require('./lib/ytdl')
@@ -89,12 +89,17 @@ function banChat() {
     }
 }
 
-const isbctes = (chatId) => {
-    if (db_notifbc.includes(chatId)) {
-        return false
-    } else {
-        return true
-    }
+function waktuRuntime(seconds) { // Tobz
+    seconds = Number(seconds);
+    var d = Math.floor(seconds / (3600 * 24));
+    var h = Math.floor(seconds % (3600 * 24) / 3600);
+    var m = Math.floor(seconds % 3600 / 60);
+    var s = Math.floor(seconds % 60);
+    var dDisplay = d > 0 ? d + (d == 1 ? " Hari," : " Hari,") : "";
+    var hDisplay = h > 0 ? h + (h == 1 ? " Jam," : " Jam,") : "";
+    var mDisplay = m > 0 ? m + (m == 1 ? " Menit," : " Menit,") : "";
+    var sDisplay = s > 0 ? s + (s == 1 ? " Detik," : " Detik") : "";
+    return dDisplay + hDisplay + mDisplay + sDisplay;
 }
 
 // Serial Number Generator
@@ -133,7 +138,7 @@ module.exports = conn = async (conn, mek) => {
         const content = JSON.stringify(mek.message)
         const from = mek.key.remoteJid
         const { text, extendedText, contact, location, liveLocation, image, video, sticker, document, audio, product } = MessageType
-        const time = moment.tz('Asia/Jakarta').format('DD/MM/YY HH:mm:ss')
+        const time = moment.tz('Asia/Jakarta').format('HH:mm:ss')
         const type = Object.keys(mek.message)[0]
         const cmd = (type === 'conversation' && mek.message.conversation) ? mek.message.conversation : (type == 'imageMessage') && mek.message.imageMessage.caption ? mek.message.imageMessage.caption : (type == 'videoMessage') && mek.message.videoMessage.caption ? mek.message.videoMessage.caption : (type == 'extendedTextMessage') && mek.message.extendedTextMessage.text ? mek.message.extendedTextMessage.text : ''.slice(1).trim().split(/ +/).shift().toLowerCase()
         const multiprefix = /^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*@,;]/.test(cmd) ? cmd.match(/^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*,;]/gi) : '-'
@@ -168,6 +173,16 @@ module.exports = conn = async (conn, mek) => {
         const conts = mek.key.fromMe ? conn.user.jid : conn.contacts[sender] || { notify: jid.replace(/@.+/, '') }
         const pushname = mek.key.fromMe ? conn.user.name : conts.notify || conts.vname || conts.name || '-'
         const SN = GenerateSerialNumber("000000000000000000000000")
+
+        // Time
+        const processTime = (timestamp, now) => {
+            // timestamp => timestamp when message was received
+            return moment.duration(now - moment(timestamp * 1000)).asSeconds()
+        }
+        const run = process.uptime()
+        const runtime = `${kyun(run)}`
+        const time1 = moment(processTime * 1000).format('HH:mm:ss');
+        const tgl = await tanggal()
 
         // Chat Read On/Off
         if (ChatRead) {
@@ -481,6 +496,10 @@ module.exports = conn = async (conn, mek) => {
                 let menupublic = `Hai ${pushname}
 Prefix : 「 ${prf} 」
 
+*INFO USER*
+>> *Nama : ${pushname}*
+>> *Premium : ${isPremium ? '✅' : '❌'}
+
 *</ADMIN-GROUP>*
 ► _${prefix}hidetag_ <Teks>
 ► _${prefix}linkgroup_
@@ -548,6 +567,15 @@ Prefix : 「 ${prf} 」
 ► _${prefix}delvote_
 ► _vote_
 ► _devote_
+
+*INFO BOT*
+>> *Nama Bot : Staz-Bot*
+>> *Owner : wa.me/6281578794887*
+>> *Total user terverifikasi : ${dbverify.length}*
+>> *Total user premium : ${dbpremium.length}*
+>> *Runtime : ${runtime}*
+>> *Waktu Server : ${time} WIB*
+>> *Tanggal : ${tgl}*
 
 ❏ *${opbot}-BOT* ❏`
                 /*-----------------------------------------------*/
@@ -624,6 +652,15 @@ Prefix : 「 ${prf} 」
 ► _${prefix}delvote_
 ► _vote_
 ► _devote_
+
+*INFO BOT*
+>> *Nama Bot : Staz-Bot*
+>> *Owner : wa.me/6281578794887*
+>> *Total user terverifikasi : ${dbverify.length}*
+>> *Total user premium : ${dbpremium.length}*
+>> *Runtime : ${runtime}*
+>> *Waktu Server : ${time} WIB*
+>> *Tanggal : ${tgl}*
 
 ❏ *${opbot}-BOT* ❏`
                 const menu = banChats ? menuself : menupublic
