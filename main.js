@@ -20,7 +20,8 @@ const starts = async (conn = new WAConnection()) => {
     conn.version = [2, 2123, 8]
     conn.browserDescription = ['STAZBOT', 'Chrome', '3.0']
     console.log(banner.string)
-    conn.on('qr', () => {console.log( color('[', 'white'), color('!', 'red'), color(']', 'white'), color(' Scan bang'))
+    conn.on('qr', () => {
+        console.log(color('[', 'white'), color('!', 'red'), color(']', 'white'), color(' Scan bang'))
     })
 
     fs.existsSync('./session.json') && conn.loadAuthInfo('./session.json')
@@ -55,7 +56,7 @@ const starts = async (conn = new WAConnection()) => {
                 }
                 const teks = capt_welcome(num, mdata.subject)
                 let buff = await getBuffer(ppimg)
-                conn.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
+                conn.sendMessage(mdata.id, buff, MessageType.image, { caption: teks, contextInfo: { "mentionedJid": [num] } })
             } else if (group.action == 'remove') {
                 num = group.participants[0]
                 try {
@@ -65,7 +66,7 @@ const starts = async (conn = new WAConnection()) => {
                 }
                 const teks = capt_left(num, mdata.subject)
                 let buff = await getBuffer(ppimg)
-                conn.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
+                conn.sendMessage(mdata.id, buff, MessageType.image, { caption: teks, contextInfo: { "mentionedJid": [num] } })
             }
         } catch (err) {
             console.log('Error: ' + color(err, 'red'))
@@ -78,7 +79,7 @@ const starts = async (conn = new WAConnection()) => {
  * @param {string} module Module name or path
  * @param {function} cb <optional>
  */
-function nocache(module, cb = () => {}) {
+function nocache(module, cb = () => { }) {
     console.log('Module', `'${module}'`, 'is now being watched for changes')
     fs.watchFile(require.resolve(module), async () => {
         await uncache(require.resolve(module))
@@ -93,10 +94,10 @@ function nocache(module, cb = () => {}) {
 function uncache(module = '.') {
     return new Promise((resolve, reject) => {
         try {
-        delete require.cache[require.resolve(module)]
-        resolve()
+            delete require.cache[require.resolve(module)]
+            resolve()
         } catch (e) {
-        reject(e)
+            reject(e)
         }
     })
 }
