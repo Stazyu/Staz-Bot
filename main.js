@@ -41,6 +41,17 @@ const starts = async (conn = new WAConnection()) => {
         require('./index.js')(conn, message)
     })
 
+    conn.on('ws-close', async () => {
+        console.log('Connection disconnected, trying to reconnect...');
+    })
+
+    conn.on('close', (reason, isReconnecting) => {
+        console.log('Disconnected, Reason :' + reason + '\nTrying to connect... :' + isReconnecting);
+        if (!isReconnecting) {
+            console.log('Connect To Phone Rejected and Shutting Down.');
+        }
+    })
+
     conn.on('group-participants-update', async (group) => {
         const welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
         if (!welcome.includes(group.jid)) return
