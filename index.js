@@ -528,6 +528,7 @@ module.exports = conn = async (conn, mek) => {
         switch (command) {
             case 'menu':
             case 'help':
+                const limit_user = userlimit.checkLimit(from, dbLimit)
                 const opbot = banChats ? 'SELF' : 'PUBLIC'
                 const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
                 let menupublic = `Hai ${pushname}
@@ -537,7 +538,8 @@ Prefix : 「 ${prf} 」
 
 *INFO USER*
 >> *Nama : ${pushname}*
->> *Premium : ${isPremium ? '✅' : '❌'}
+>> *Premium : ${isPremium ? '✅' : '❌'}*
+>> *Sisa Limit: ${limit_user}*
 
 *</ADMIN-GROUP>*
 ► _${prefix}hidetag_ <Teks>
@@ -2079,6 +2081,7 @@ Prefix : ${singleprefix}
                 break
             case 'limit':
             case 'ceklimit':
+                if (isOwner) return reply('Ga usah cek limit lagi, udah auto unlimited limit😎')
                 const limit = userlimit.checkLimit(from, dbLimit)
                 reply('Sisa limit penggunaan bot anda ' + limit + ' limit')
                 break
