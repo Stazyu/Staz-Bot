@@ -455,13 +455,13 @@ module.exports = conn = async (conn, mek) => {
         }
 
         // Batas limit command
-        if (userlimit.isLimit(from, dbLimit) && limit) {
-            if (!isGroup && isCmd) {
-                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
-            } else if (isGroup && isCmd) {
-                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
-            }
-        }
+        // if (userlimit.isLimit(from, dbLimit) && limit) {
+        //     if (!isGroup && isCmd) {
+        //         return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+        //     } else if (isGroup && isCmd) {
+        //         return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+        //     }
+        // }
 
         // Create limit user & Add limit user
         if (!isGroup && isCmd && limit) { userlimit.isLimit(from, dbLimit), userlimit.isLimitAdd(from, dbLimit) }
