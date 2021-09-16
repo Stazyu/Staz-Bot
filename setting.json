@@ -1,9 +1,10 @@
 {
   "singleprefix": "#",
+  "limitUser": 10,
   "zeksapi": "",
-  "banChats": false,
-  "selfbot": false,
-  "ChatRead": true,
+  "banChats": true,
+  "selfbot": true,
+  "ChatRead": false,
   "single_multi": true,
   "ownerNumber": "6283104500832"
 }

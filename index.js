@@ -38,6 +38,7 @@ const brainly = require('brainly-scraper')
 const yts = require('yt-search')
 const ms = require('parse-ms')
 const toMs = require('ms')
+const cron = require('node-cron')
 
 /// LOAD FILE ///
 const { wait, getBuffer, h2k, generateMessageID, getGroupAdmins, getRandom, banner, start, info, success, close, tanggal } = require('./lib/functions')
@@ -48,7 +49,7 @@ const { webp2gifFile } = require('./lib/webp2mp4')
 const time = moment().tz('Asia/Jakarta').format("HH:mm:ss")
 const { sleep, isAfk, cekafk, addafk } = require('./lib/offline')
 const { addVote, delVote } = require('./lib/vote')
-const { premium, sewa } = require('./function/')
+const { premium, sewa, userlimit } = require('./function/')
 const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
 const { addFilter, isFiltered } = require('./lib/msgfilter')
 const { addNotifBroadcast, checkIdBroadcast, getBroadcastPosition } = require('./function/notifbc')
@@ -57,12 +58,18 @@ const { addNotifBroadcast, checkIdBroadcast, getBroadcastPosition } = require('.
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
 let dbverify = JSON.parse(fs.readFileSync('./lib/database/user/verify.json'))
 let dbsewa = JSON.parse(fs.readFileSync('./lib/database/group/sewa.json'))
+let dbLimit = JSON.parse(fs.readFileSync('./lib/database/user/limit.json'))
 let setting = JSON.parse(fs.readFileSync('./setting.json'))
 let voting = JSON.parse(fs.readFileSync('./lib/voting.json'))
 let afk = JSON.parse(fs.readFileSync('./lib/off.json'))
 let db_notifbc = JSON.parse(fs.readFileSync('./lib/database/user/notif_broadcast.json'))
 let welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
+let includes = [`play`]
+let not_includes = {
+    limit: ['menu', 'help', 'artinama', 'cekwatak', 'rate', 'ping', 'math', 'notifbc']
+}
 
+// Options
 offline = false
 targetpc = '6285751056816'
 fake = 'STAZ'
@@ -81,26 +88,13 @@ let {
     single_multi,
 } = setting
 
-function banChat() {
-    if (banChats == true) {
-        return false
-    } else {
-        return true
-    }
-}
-
-function waktuRuntime(seconds) { // Tobz
-    seconds = Number(seconds);
-    var d = Math.floor(seconds / (3600 * 24));
-    var h = Math.floor(seconds % (3600 * 24) / 3600);
-    var m = Math.floor(seconds % 3600 / 60);
-    var s = Math.floor(seconds % 60);
-    var dDisplay = d > 0 ? d + (d == 1 ? " Hari," : " Hari,") : "";
-    var hDisplay = h > 0 ? h + (h == 1 ? " Jam," : " Jam,") : "";
-    var mDisplay = m > 0 ? m + (m == 1 ? " Menit," : " Menit,") : "";
-    var sDisplay = s > 0 ? s + (s == 1 ? " Detik," : " Detik") : "";
-    return dDisplay + hDisplay + mDisplay + sDisplay;
-}
+cron.schedule('0 0 * * *', () => {
+    let reset = []
+    dbLimit = reset
+    console.log('Resetting limit...');
+    fs.writeFileSync('./lib/database/limit.json', JSON.stringify(dbLimit))
+    console.log('Done, reset limit.');
+})
 
 // Serial Number Generator
 function GenerateRandomNumber(min, max) {
@@ -138,7 +132,8 @@ module.exports = conn = async (conn, mek) => {
         const content = JSON.stringify(mek.message)
         const from = mek.key.remoteJid
         const { text, extendedText, contact, location, liveLocation, image, video, sticker, document, audio, product } = MessageType
-        const time = moment.tz('Asia/Jakarta').format('HH:mm:ss')
+        const time = moment.tz('Asia/Jakarta').format('DD/MM/YY HH:mm:ss')
+        const time_waktu = moment.tz('Asia/Jakarta').format('HH:mm:ss')
         const type = Object.keys(mek.message)[0]
         const cmd = (type === 'conversation' && mek.message.conversation) ? mek.message.conversation : (type == 'imageMessage') && mek.message.imageMessage.caption ? mek.message.imageMessage.caption : (type == 'videoMessage') && mek.message.videoMessage.caption ? mek.message.videoMessage.caption : (type == 'extendedTextMessage') && mek.message.extendedTextMessage.text ? mek.message.extendedTextMessage.text : ''.slice(1).trim().split(/ +/).shift().toLowerCase()
         const multiprefix = /^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*@,;]/.test(cmd) ? cmd.match(/^[°•π÷×¶∆£¢€¥®™=|~!#$%^&.?/\\©^z+*,;]/gi) : '-'
@@ -175,13 +170,21 @@ module.exports = conn = async (conn, mek) => {
         const SN = GenerateSerialNumber("000000000000000000000000")
 
         // Time
-        const processTime = (timestamp, now) => {
-            // timestamp => timestamp when message was received
-            return moment.duration(now - moment(timestamp * 1000)).asSeconds()
+        if (time_waktu < "03:30:00") {
+            var ucapanWaktu = 'Selamat Malam'
+        } else if (time_waktu < "11:00:00") {
+            ucapanWaktu = 'Selamat Pagi'
+        } else if (time_waktu < "15:00:00") {
+            ucapanWaktu = "Selamat Siang"
+        } else if (time_waktu < "18:00:00") {
+            ucapanWaktu = "Selamat Sore"
+        } else if (time_waktu < "20:00:00") {
+            ucapanWaktu = "Selamat Petang"
+        } else if (time_waktu < "23:59:00") {
+            ucapanWaktu = "selamat Malam"
         }
         const run = process.uptime()
         const runtime = `${kyun(run)}`
-        const time1 = moment(processTime * 1000).format('HH:mm:ss');
         const tgl = await tanggal()
 
         // Chat Read On/Off
@@ -189,6 +192,7 @@ module.exports = conn = async (conn, mek) => {
             conn.chatRead(from)
         }
 
+        // Auto expired 
         const isPremium = premium.checkPremiumUser(senderid, dbpremium)
         const isSewa = sewa.checkSewa(groupId, dbsewa)
 
@@ -426,9 +430,42 @@ module.exports = conn = async (conn, mek) => {
 
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
-        if (!isGroup && !isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color('Message'), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
+        if (!isGroup && !isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
         if (isCmd && isGroup) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
-        if (!isCmd && isGroup && !fromMe) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color('Message'), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
+        if (!isCmd && isGroup && !fromMe) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
+
+        // Command limit includes
+        // let limit = false;
+        // if ((!isGroup && isCmd) || (isGroup && isCmd)) {
+        //     for (let i = 0; i < includes.limit.length; i++) {
+        //         if (`${prefix}${includes.limit[i]}` === body) {
+        //             limit = true
+        //         }
+        //     }
+        // }
+
+        // Command limit not_includes
+        let limit = true;
+        if ((!isGroup && isCmd) || (isGroup && isCmd)) {
+            for (let i = 0; i < not_includes.limit.length; i++) {
+                if (not_includes.limit[i] === command || prefix.includes(body)) {
+                    limit = false
+                }
+            }
+        }
+
+        // Batas limit command
+        if (userlimit.isLimit(from, dbLimit) && limit) {
+            if (!isGroup && isCmd) {
+                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+            } else if (isGroup && isCmd) {
+                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+            }
+        }
+
+        // Create limit user & Add limit user
+        if (!isGroup && isCmd && limit) { userlimit.isLimit(from, dbLimit), userlimit.isLimitAdd(from, dbLimit) }
+        if (isGroup && isCmd && limit) { userlimit.isLimit(from, dbLimit), userlimit.isLimitAdd(from, dbLimit) }
 
         if (isGroup && !isVote) {
             if (budy.toLowerCase() === 'vote') {
@@ -494,6 +531,8 @@ module.exports = conn = async (conn, mek) => {
                 const opbot = banChats ? 'SELF' : 'PUBLIC'
                 const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
                 let menupublic = `Hai ${pushname}
+${ucapanWaktu}👋
+
 Prefix : 「 ${prf} 」
 
 *INFO USER*
@@ -579,7 +618,9 @@ Prefix : 「 ${prf} 」
 
 ❏ *${opbot}-BOT* ❏`
                 /*-----------------------------------------------*/
-                let menuself = `Hai ${pushname}
+                let menuself = `Hai ${pushname}                 
+${ucapanWaktu}👋
+
 Prefix : 「 ${prf} 」
 
 *</OWNER>*
@@ -667,17 +708,16 @@ Prefix : 「 ${prf} 」
                 fakestatus(menu)
                 break
             case 'tes':
-                let total = []
-                for (let i of totalchat) {
-                    if (checkIdBroadcast(i.jid)) {
-                        total.push(i.jid);
-                    } else {
-                        console.log(i.jid);
-                    }
-                }
-                // addNotifBroadcast(from)
-                // console.log(total)
-                // sendContact(from, 'Wahyu', ownerNumber[0].replace('@s.whatsapp.net', ''))
+                // Object.keys(dbpremium).forEach((i) => {
+                //     if (dbpremium[i].id === '6283104500832@s.whatsapp.net') {
+                //         // position = i
+                //         dbpremium[i].id = 'tes'
+                //     }
+                //     fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
+                // })
+                // userlimit.isLimit(from, dbLimit)
+                // userlimit.isLimitAdd(from, dbLimit)
+                console.log(no_Limit);
                 reply('tes')
                 break
             case 'ownermenu':
@@ -2037,8 +2077,10 @@ Prefix : ${singleprefix}
                 teks = `${kyun(run)}`
                 fakegroup(teks)
                 break
-            case 'tes':
-                console.log(mek)
+            case 'limit':
+            case 'ceklimit':
+                const limit = userlimit.checkLimit(from, dbLimit)
+                reply('Sisa limit penggunaan bot anda ' + limit + ' limit')
                 break
             case 'speed':
             case 'ping':
@@ -2113,7 +2155,7 @@ Prefix : ${singleprefix}
                 fakegroup(`「 *PREMIUM EXPIRE* 」\n\n➸ *ID*: ${senderid}\n➸ *Premium left*: ${cekexpired.days} day(s) ${cekexpired.hours} hour(s) ${cekexpired.minutes} minute(s)`)
                 break
             case 'premium':
-                if (!isOwner) return await reply('Khusus Owner Bot!!')
+                if (!isOwner && !fromMe) return await reply('Khusus Owner Bot!!')
                 if (args.length !== 3) return await reply('Format Salah!')
                 if (args[0] === 'add') {
                     try {
@@ -2249,7 +2291,7 @@ Prefix : ${singleprefix}
                 break
             default:
 
-                if (body.startsWith(prefix) && !prefix.includes('*')) {
+                if (body.startsWith(prefix) && !prefix.includes('*') && !prefix.includes(body)) {
                     reply(`Maaf ${pushname}, Command *${prefix}${command}* Tidak Terdaftar Di Dalam *#menu*!`)
                 }
                 if (budy.startsWith('x') && !isOwner) {
