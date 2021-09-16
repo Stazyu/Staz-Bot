@@ -528,6 +528,7 @@ module.exports = conn = async (conn, mek) => {
         switch (command) {
             case 'menu':
             case 'help':
+                if (isOwner) const ownerlimit = true
                 const limit_user = userlimit.checkLimit(from, dbLimit)
                 const opbot = banChats ? 'SELF' : 'PUBLIC'
                 const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
@@ -539,7 +540,7 @@ Prefix : 「 ${prf} 」
 *INFO USER*
 >> *Nama : ${pushname}*
 >> *Premium : ${isPremium ? '✅' : '❌'}*
->> *Sisa Limit: ${limit_user}*
+>> *Sisa Limit: ${ownerlimit ? 'Unlimited' : limit_user}*
 
 *</ADMIN-GROUP>*
 ► _${prefix}hidetag_ <Teks>
