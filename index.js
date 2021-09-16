@@ -530,7 +530,7 @@ module.exports = conn = async (conn, mek) => {
             case 'help':
                 let ownerlimit = false
                 if (isOwner) { ownerlimit = true }
-                const limit_user = userlimit.checkLimit(from, dbLimit)
+                const limit_user = setting.limitUser - userlimit.checkLimit(from, dbLimit)
                 const opbot = banChats ? 'SELF' : 'PUBLIC'
                 const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
                 let menupublic = `Hai ${pushname}
