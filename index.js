@@ -2074,7 +2074,7 @@ Prefix : ${singleprefix}
                 break
             case 'limit':
             case 'ceklimit':
-                if (isOwner) return reply('Ga usah cek limit lagi, udah auto unlimited limit😎')
+                if (isOwner || isPremium) return reply('Ga usah cek limit lagi, udah auto unlimited limit😎')
                 const limit = userlimit.checkLimit(sender, dbLimit)
                 reply('Sisa limit penggunaan bot anda ' + limit + ' limit')
                 break
