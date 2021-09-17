@@ -66,7 +66,7 @@ let db_notifbc = JSON.parse(fs.readFileSync('./lib/database/user/notif_broadcast
 let welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
 let includes = [`play`]
 let not_includes = {
-    limit: ['menu', 'help', 'artinama', 'cekwatak', 'rate', 'ping', 'math', 'notifbc']
+    limit: ['menu', 'help', 'artinama', 'cekwatak', 'rate', 'ping', 'math', 'notifbc', 'limit', 'ceklimit']
 }
 
 // Options
@@ -417,8 +417,6 @@ module.exports = conn = async (conn, mek) => {
         // Selfbot (True or False)
         if (mek.key.fromMe && !selfbot) return
 
-        // if (isGroup) return
-
         // Cek Verifikasi
         if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe)
             return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
@@ -432,9 +430,9 @@ module.exports = conn = async (conn, mek) => {
 
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
-        if (!isGroup && !isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
+        if (!isGroup && !isCmd) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
         if (isCmd && isGroup) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
-        if (!isCmd && isGroup && !fromMe) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;31mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
+        if (!isCmd && isGroup && !fromMe) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
 
         // Command limit includes
         // let limit = false;
@@ -457,17 +455,17 @@ module.exports = conn = async (conn, mek) => {
         }
 
         // Batas limit command
-        // if (userlimit.isLimit(from, dbLimit) && limit) {
-        //     if (!isGroup && isCmd) {
-        //         return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
-        //     } else if (isGroup && isCmd) {
-        //         return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
-        //     }
-        // }
+        if (userlimit.isLimit(sender, dbLimit) && limit) {
+            if (!isGroup && isCmd) {
+                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+            } else if (isGroup && isCmd) {
+                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+            }
+        }
 
         // Create limit user & Add limit user
-        if (!isGroup && isCmd && limit) { userlimit.isLimit(from, dbLimit), userlimit.isLimitAdd(from, dbLimit) }
-        if (isGroup && isCmd && limit) { userlimit.isLimit(from, dbLimit), userlimit.isLimitAdd(from, dbLimit) }
+        if (!isGroup && isCmd && limit) { userlimit.isLimit(sender, dbLimit), userlimit.isLimitAdd(sender, dbLimit) }
+        if (isGroup && isCmd && limit) { userlimit.isLimit(sender, dbLimit), userlimit.isLimitAdd(sender, dbLimit) }
 
         if (isGroup && !isVote) {
             if (budy.toLowerCase() === 'vote') {
@@ -531,8 +529,8 @@ module.exports = conn = async (conn, mek) => {
             case 'menu':
             case 'help':
                 let ownerlimit = false
-                if (isOwner) { ownerlimit = true }
-                const limit_user = userlimit.checkLimit(from, dbLimit)
+                if (isOwner, isPremium) { ownerlimit = true }
+                const limit_user = userlimit.checkLimit(sender, dbLimit)
                 const opbot = banChats ? 'SELF' : 'PUBLIC'
                 const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
                 let menupublic = `Hai ${pushname}
@@ -714,7 +712,7 @@ Prefix : 「 ${prf} 」
                 fakestatus(menu)
                 break
             case 'tes':
-                console.log(mek.message);
+                console.log(mek);
                 reply('tes')
                 break
             case 'ownermenu':
@@ -2077,7 +2075,7 @@ Prefix : ${singleprefix}
             case 'limit':
             case 'ceklimit':
                 if (isOwner) return reply('Ga usah cek limit lagi, udah auto unlimited limit😎')
-                const limit = userlimit.checkLimit(from, dbLimit)
+                const limit = userlimit.checkLimit(sender, dbLimit)
                 reply('Sisa limit penggunaan bot anda ' + limit + ' limit')
                 break
             case 'speed':

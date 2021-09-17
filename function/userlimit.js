@@ -24,7 +24,7 @@ function isLimit(userId, _dir) {
 		}
 	})
 	if (found === false) {
-		const userLimit = { id: userId, limit: 1 }
+		const userLimit = { id: userId, limit: 0 }
 		_dir.push(userLimit);
 		fs.writeFileSync('./lib/database/user/limit.json', JSON.stringify(_dir))
 	}
@@ -53,7 +53,7 @@ function isLimitAdd(userId, _dir) {
  */
 
 function checkLimit(userId, _dir) {
-	let sisaLimit = 0
+	let sisaLimit = null
 	Object.keys(_dir).forEach((i) => {
 		if (_dir[i].id === userId) {
 			sisaLimit = limitUser - _dir[i].limit
