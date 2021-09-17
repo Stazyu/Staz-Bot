@@ -417,6 +417,8 @@ module.exports = conn = async (conn, mek) => {
         // Selfbot (True or False)
         if (mek.key.fromMe && !selfbot) return
 
+        // if (isGroup) return
+
         // Cek Verifikasi
         if (isGroup && isCmd && body !== `${prefix}verify` && !cekverify && !fromMe)
             return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
@@ -455,13 +457,13 @@ module.exports = conn = async (conn, mek) => {
         }
 
         // Batas limit command
-        // if (userlimit.isLimit(from, dbLimit) && limit) {
-        //     if (!isGroup && isCmd) {
-        //         return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
-        //     } else if (isGroup && isCmd) {
-        //         return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
-        //     }
-        // }
+        if (userlimit.isLimit(from, dbLimit) && limit) {
+            if (!isGroup && isCmd) {
+                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+            } else if (isGroup && isCmd) {
+                return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
+            }
+        }
 
         // Create limit user & Add limit user
         if (!isGroup && isCmd && limit) { userlimit.isLimit(from, dbLimit), userlimit.isLimitAdd(from, dbLimit) }
@@ -530,7 +532,7 @@ module.exports = conn = async (conn, mek) => {
             case 'help':
                 let ownerlimit = false
                 if (isOwner) { ownerlimit = true }
-                const limit_user = setting.limitUser - userlimit.checkLimit(from, dbLimit)
+                const limit_user = userlimit.checkLimit(from, dbLimit)
                 const opbot = banChats ? 'SELF' : 'PUBLIC'
                 const prf = single_multi ? 'MULTI-PREFIX' : singleprefix
                 let menupublic = `Hai ${pushname}
@@ -712,16 +714,7 @@ Prefix : 「 ${prf} 」
                 fakestatus(menu)
                 break
             case 'tes':
-                // Object.keys(dbpremium).forEach((i) => {
-                //     if (dbpremium[i].id === '6283104500832@s.whatsapp.net') {
-                //         // position = i
-                //         dbpremium[i].id = 'tes'
-                //     }
-                //     fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
-                // })
-                // userlimit.isLimit(from, dbLimit)
-                // userlimit.isLimitAdd(from, dbLimit)
-                console.log(no_Limit);
+                console.log(mek.message);
                 reply('tes')
                 break
             case 'ownermenu':

@@ -1,6 +1,6 @@
 const fs = require('fs-extra')
 const toMs = require('ms')
-const { limitUser } = JSON.parse(fs.readFileSync('./setting.json'))
+const { limitUser } = require('../setting.json')
 
 /**
  * @param {String} userId
@@ -53,7 +53,7 @@ function isLimitAdd(userId, _dir) {
  */
 
 function checkLimit(userId, _dir) {
-	let sisaLimit = null
+	let sisaLimit = 0
 	Object.keys(_dir).forEach((i) => {
 		if (_dir[i].id === userId) {
 			sisaLimit = limitUser - _dir[i].limit

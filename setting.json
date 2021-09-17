@@ -2,7 +2,7 @@
   "singleprefix": "#",
   "limitUser": 10,
   "zeksapi": "",
-  "banChats": true,
+  "banChats": false,
   "selfbot": true,
   "ChatRead": false,
   "single_multi": true,
