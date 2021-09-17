@@ -1,8 +1,8 @@
 {
   "singleprefix": "#",
   "limitUser": 10,
-  "zeksapi": "",
-  "banChats": true,
+  "zeksapi": "Wahyuhp123",
+  "banChats": false,
   "selfbot": true,
   "ChatRead": false,
   "single_multi": true,
