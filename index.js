@@ -1715,7 +1715,7 @@ Prefix : ${singleprefix}
                 for (let i = 0; i < totalchat.length; i++) {
                     // console.log(totalchat[i].jid);
                     if (totalchat[i].jid.includes('@g.us')) {
-                        totalgrupp++
+                        totalGrupp++
                         const { name, count, jid, spam, message } = totalchat[i]
                         totalgrup += `${totalGrupp}. ${name}\n`
                         totalgrup += `  ╠ Id Group : ${jid}\n`
