@@ -1714,11 +1714,11 @@ Prefix : ${singleprefix}
                 for (let i = 0; i < totalchat.length; i++) {
                     // console.log(totalchat[i].jid);
                     if (totalchat[i].jid.includes('@g.us')) {
-                        let { name, count, jid, spam, message } = totalchat[i]
-                        let { owner, participants } = totalchat[i].metadata
+                        const { name, count, jid, spam, message } = totalchat[i]
+                        const { owner, participants } = totalchat[i].metadata
                         totalgrup += `${i + 1}. ${name}\n`
                         totalgrup += `  ╠ Id Group : ${jid}\n`
-                        totalgrup += `  ╠ Owner Group : ${owner}\n`
+                        totalgrup += `  ╠ Owner Group : ${totalchat[i].metadata.owner}\n`
                         totalgrup += `  ╠ Total Member : ${participants.length}\n`
                         totalgrup += `  ╠ Count : ${count}\n`
                         totalgrup += `  ╠ Message : ${message}\n`
