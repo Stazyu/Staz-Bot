@@ -1711,11 +1711,13 @@ Prefix : ${singleprefix}
             case 'listgroup':
                 if (!isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
                 let totalgrup = '『 Total Group Bot 』\n\n'
+                let totalGrupp = 0
                 for (let i = 0; i < totalchat.length; i++) {
                     // console.log(totalchat[i].jid);
                     if (totalchat[i].jid.includes('@g.us')) {
+                        totalgrupp++
                         const { name, count, jid, spam, message } = totalchat[i]
-                        totalgrup += `${i + 1}. ${name}\n`
+                        totalgrup += `${totalGrupp}. ${name}\n`
                         totalgrup += `  ╠ Id Group : ${jid}\n`
                         totalgrup += `  ╠ Count : ${count}\n`
                         totalgrup += `  ╠ Message : ${message}\n`
