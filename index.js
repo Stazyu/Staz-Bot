@@ -1719,8 +1719,8 @@ Prefix : ${singleprefix}
                         totalgrup += `  ╠ Id Group : ${jid}\n`
                         totalgrup += `  ╠ Count : ${count}\n`
                         totalgrup += `  ╠ Message : ${message}\n`
-                        totalgrup += `  ╚ Spam : ${spam}`
-                        console.log(totalchat[i]);
+                        totalgrup += `  ╚ Spam : ${spam}\n\n`
+                        // console.log(totalchat[i]);
                     }
                 }
                 reply(totalgrup)
