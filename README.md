@@ -50,9 +50,13 @@
 | ON |✅|
 | STATUS |✅|
 | BROADCAST/BC |✅|
+| CLEAR CHAT |✅|
 | ADD PREMIUM |✅|
 | DEL PREMIUM |✅|
 | LIST PREMIUM |✅|
+| ADD SEWA |✅|
+| DEL SEWA |✅|
+| LIST SEWA |✅|
 
 | ADMIN |🔁|
 | ------------- | ------------- |
@@ -73,6 +77,7 @@
 | ADD |✅|
 | KICK |✅|
 | LINKGROUP |✅|
+| DELETE MSG |✅|
 
 | MAKER |✅|
 | ------------- | ------------- |

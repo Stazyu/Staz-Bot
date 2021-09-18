@@ -59,6 +59,7 @@ let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
 let dbverify = JSON.parse(fs.readFileSync('./lib/database/user/verify.json'))
 let dbsewa = JSON.parse(fs.readFileSync('./lib/database/group/sewa.json'))
 let dbLimit = JSON.parse(fs.readFileSync('./lib/database/user/limit.json'))
+let dberror = JSON.parse(fs.readFileSync('./lib/database/bot/error.json'))
 let setting = JSON.parse(fs.readFileSync('./setting.json'))
 let voting = JSON.parse(fs.readFileSync('./lib/voting.json'))
 let afk = JSON.parse(fs.readFileSync('./lib/off.json'))
@@ -89,11 +90,17 @@ let {
 } = setting
 
 cron.schedule('0 0 * * *', () => {
+    for (let i in totalchat) {
+        if (totalchat[i].jid.includes('@g.us')) {
+            // console.log(totalchat[i].jid);
+            conn.modifyChat(totalchat[i].jid, 'clear')
+        }
+    }
     let reset = []
     dbLimit = reset
-    console.log('Resetting limit...');
+    console.log(color('Resetting limit...', 'green'));
     fs.writeFileSync('./lib/database/limit.json', JSON.stringify(dbLimit))
-    console.log('Done, reset limit.');
+    console.log(color('Done, reset limit.', 'green'));
 })
 
 // Serial Number Generator
@@ -455,7 +462,7 @@ module.exports = conn = async (conn, mek) => {
         }
 
         // Batas limit command
-        if (userlimit.isLimit(sender, dbLimit) && limit) {
+        if (userlimit.isLimit(sender, dbLimit) && limit && !isPremium && !isOwner) {
             if (!isGroup && isCmd) {
                 return reply('Limit anda sudah mencapai batas harian, coba esok lagi!')
             } else if (isGroup && isCmd) {
@@ -712,7 +719,14 @@ Prefix : 「 ${prf} 」
                 fakestatus(menu)
                 break
             case 'tes':
-                console.log(mek);
+                if (!isOwner && !fromMe) return reply('Maaf ini fitur khusus owner kak!!')
+                for (let i in totalchat) {
+                    if (totalchat[i].jid.includes('@g.us')) {
+                        // console.log(totalchat[i].jid);
+                        conn.modifyChat(totalchat[i].jid, 'clear')
+                    }
+                }
+                // conn.modifyChat('62851550020544-1631859720@g.us', 'clear')
                 reply('tes')
                 break
             case 'ownermenu':
@@ -735,6 +749,7 @@ Prefix : 「 ${prf} 」
             ► _${prefix}upswteks_
             ► _${prefix}upswimage_
             ► _${prefix}upswvideo_
+            ► _${prefix}premium_ <add/del tag/no duration>
             `)
                 break
             case 'tagmenu':
@@ -828,6 +843,22 @@ Prefix : 「 ${prf} 」
                     conn.groupRemove(from, mentioned)
                 }
                 break
+            case 'edotensei':
+                if (!isGroup) return reply(mess.only.group)
+                if (!isGroupAdmins) return reply(mess.only.adminGroup)
+                if (!isBotGroupAdmins) return reply(mess.only.Botadmin)
+                if (mek.message.extendedTextMessage === undefined || mek.message.extendedTextMessage === null) return reply('Tag target yang ingin di tendang!')
+                let num = mek.message.extendedTextMessage.contextInfo.mentionedJid
+                mentions(`Perintah di terima, mengeluarkan : @${num[0].split('@')[0]}`, mentioned, true)
+                conn.groupRemove(from, num)
+                await sleep(8000)
+                try {
+                    conn.groupAdd(from, num)
+                } catch (error) {
+                    console.log('error :', error)
+                    reply('Gagal Menambahkan Target, mungkin karena di private')
+                }
+                break
             case 'jadian':
                 if (!isGroup) return reply('perintah ini hanya dapat digunakan di dalam grup')
                 const membergroup = await groupMembers
@@ -908,8 +939,12 @@ Prefix : 「 ${prf} 」
                 break
             case 'lirik':
                 if (!q) return reply('lagu apa?')
-                let song = await hx.lirik(q)
-                sendMediaURL(from, song.thumb, song.lirik)
+                try {
+                    let song = await hx.lirik(q)
+                    sendMediaURL(from, song.thumb, song.lirik)
+                } catch (err) {
+                    console.log('Error : ' + err);
+                }
                 break
             case 'otaku':
                 if (!q) return reply('judul animenya?')
@@ -1603,24 +1638,75 @@ Prefix : ${singleprefix}
                     }, 2000);
                 }
                 break
-            case 'sewacheck':
-            case 'ceksewa':
-                if (!isSewa) return await reply('Kamu belum sewa bot!')
-                const cek_expired = ms(sewa.getSewaExpired(groupId, dbsewa) - Date.now())
-                await reply(`*「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cek_expired.days} day(s) ${cek_expired.hours} hour(s) ${cek_expired.minutes} minute(s)`)
-                break
-            case 'listsewa':
-                let listsewa = '「 *SEWA GROUP LIST* 」\n\n'
-                let nomorListsewa = 0
-                const arraySewa = sewa.getAllSewa(dbsewa)
-                for (let i = 0; i < arraySewa.length; i++) {
-                    nomorListsewa++
-                    listsewa += `${nomorListsewa}. ${arraySewa[i].subject}\n`
-                    listsewa += `   - Group Id : ${arraySewa[i].id}\n`
-                    listsewa += `   - Sewa left : ${ms(arraySewa[i].expired - Date.now()).days} day(s) ${ms(arraySewa[i].expired - Date.now()).hours} hour(s) ${ms(arraySewa[i].expired - Date.now()).minutes} minute(s)\n`
-                    listsewa += `   - type sewa : ${arraySewa[i].type}\n\n`
+            case 'premium':
+                if (!isOwner && !fromMe) return await reply('Khusus Owner Bot!!')
+                if (args.length !== 3) return await reply('Format Salah!')
+                if (args[0] === 'add') {
+                    try {
+                        const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                        if (mentioned.length !== 0) {
+                            // for (let benet of mentioned) {
+                            if (mentioned === botNumber) return await reply('Format Salah!')
+                            premium.addPremiumUser(mentioned, args[2], dbpremium)
+                            await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${mentioned}\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
+                            // }
+                        }
+                    } catch {
+                        premium.addPremiumUser(args[1] + '@s.whatsapp.net', args[2], dbpremium)
+                        await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${args[1]}@c.us\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
+                    }
+                } else if (args[0] === 'del') {
+                    try {
+                        const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                        if (mentioned.length !== 0) {
+                            // if (mentioned === botNumber) return await reply('Format Salah!')
+                            dbpremium.splice(premium.getPremiumPosition(senderid, dbpremium), 1)
+                            fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
+                            await reply('Delete Done✅')
+                        }
+                    } catch {
+                        dbpremium.splice(premium.getPremiumPosition(args[1] + '@s.whatsapp.net', dbpremium), 1)
+                        fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
+                        await reply('Delete Done✅')
+                    }
+                } else {
+                    await reply(`Kirim Format ${prefix}premium add/del @tagmember durasi`)
                 }
-                reply(listsewa)
+                break
+            case 'clearmessage':
+            case 'clearmsg':
+                if (!isOwner && !fromMe) return reply('Maaf ini fitur khusus owner kak!!')
+                for (let i in totalchat) {
+                    if (totalchat[i].jid.includes('@g.us')) {
+                        // console.log(totalchat[i].jid);
+                        conn.modifyChat(totalchat[i].jid, 'clear')
+                    }
+                }
+                reply('Done clear message✅')
+                break
+            case 'term':
+                if (!fromMe && !isOwner) return
+                if (!q) return fakegroup(mess.wrongFormat)
+                exec(q, (err, stdout) => {
+                    if (err) return fakegroup(`SELF-BOT:~ ${err}`)
+                    if (stdout) {
+                        fakegroup(stdout)
+                    }
+                })
+                break
+            case 'join':
+                if (!fromMe && !isOwner) return reply('Fitur Khusus Owner!!')
+                try {
+                    if (!isUrl(args[0]) && !args[0].includes('whatsapp.com')) return reply(mess.Iv)
+                    hen = args[0]
+                    if (!q) return fakestatus('Masukan link group')
+                    var codeInvite = hen.split('https://chat.whatsapp.com/')[1]
+                    if (!codeInvite) return fakegroup('pastikan link sudah benar!')
+                    var response = await conn.acceptInvite(codeInvite)
+                    fakestatus('SUKSES')
+                } catch {
+                    fakegroup('LINK ERROR!')
+                }
                 break
 
             /* Feature Admin group */
@@ -1738,6 +1824,22 @@ Prefix : ${singleprefix}
                 } else {
                     reply('Kirim perintah yang sesuai kak!')
                 }
+                break
+            case 'delete':
+            case 'd':
+                if (!isGroupAdmins && !isOwner && !isPremium) return reply(mess.only.adminGroup)
+                conn.deleteMessage(from,
+                    {
+                        id: mek.message.extendedTextMessage.contextInfo.stanzaId,
+                        remoteJid: from,
+                        fromMe: true
+                    })
+                break
+            case 'sewacheck':
+            case 'ceksewa':
+                if (!isSewa) return await reply('Kamu belum sewa bot!')
+                const cek_expired = ms(sewa.getSewaExpired(groupId, dbsewa) - Date.now())
+                await reply(`*「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cek_expired.days} day(s) ${cek_expired.hours} hour(s) ${cek_expired.minutes} minute(s)`)
                 break
 
             /* Feature Download */
@@ -1884,7 +1986,10 @@ Prefix : ${singleprefix}
                         const { audio } = result
                         sendMediaURL(from, audio, '')
                     })
-                    .catch(e => console.log(e))
+                    .catch(e => {
+                        console.log(e)
+                        reply('Error kak!, coba link lain. kalo masih error chat owner!')
+                    })
                 break
             case 'brainly':
                 if (args.length < 1) return reply('Pertanyaan apa')
@@ -1993,30 +2098,6 @@ Prefix : ${singleprefix}
                     })
                 } else {
                     reply('Foto aja kak')
-                }
-                break
-            case 'term':
-                if (!fromMe && !isOwner) return
-                if (!q) return fakegroup(mess.wrongFormat)
-                exec(q, (err, stdout) => {
-                    if (err) return fakegroup(`SELF-BOT:~ ${err}`)
-                    if (stdout) {
-                        fakegroup(stdout)
-                    }
-                })
-                break
-            case 'join':
-                if (!fromMe && !isOwner) return reply('Fitur Khusus Owner!!')
-                try {
-                    if (!isUrl(args[0]) && !args[0].includes('whatsapp.com')) return reply(mess.Iv)
-                    hen = args[0]
-                    if (!q) return fakestatus('Masukan link group')
-                    var codeInvite = hen.split('https://chat.whatsapp.com/')[1]
-                    if (!codeInvite) return fakegroup('pastikan link sudah benar!')
-                    var response = await conn.acceptInvite(codeInvite)
-                    fakestatus('SUKSES')
-                } catch {
-                    fakegroup('LINK ERROR!')
                 }
                 break
             case 'verify':
@@ -2143,48 +2224,6 @@ Prefix : ${singleprefix}
                     reply('Link error')
                 }
                 break
-            case 'premiumcheck':
-            case 'cekpremium':
-                if (!cekverify) return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
-                if (!isPremium) return reply('Anda Belum terdaftar sebagai member premium atau masa aktif premium habis, untuk upgrade ke premium hubungi owner bot')
-                const cekexpired = ms(premium.getPremiumExpired(senderid, dbpremium) - Date.now())
-                fakegroup(`「 *PREMIUM EXPIRE* 」\n\n➸ *ID*: ${senderid}\n➸ *Premium left*: ${cekexpired.days} day(s) ${cekexpired.hours} hour(s) ${cekexpired.minutes} minute(s)`)
-                break
-            case 'premium':
-                if (!isOwner && !fromMe) return await reply('Khusus Owner Bot!!')
-                if (args.length !== 3) return await reply('Format Salah!')
-                if (args[0] === 'add') {
-                    try {
-                        const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
-                        if (mentioned.length !== 0) {
-                            // for (let benet of mentioned) {
-                            if (mentioned === botNumber) return await reply('Format Salah!')
-                            premium.addPremiumUser(mentioned, args[2], dbpremium)
-                            await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${mentioned}\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
-                            // }
-                        }
-                    } catch {
-                        premium.addPremiumUser(args[1] + '@s.whatsapp.net', args[2], dbpremium)
-                        await reply(`*「 PREMIUM ADDED 」*\n\n➸ *ID*: ${args[1]}@c.us\n➸ *Expired*: ${ms(toMs(args[2])).days} day(s) ${ms(toMs(args[2])).hours} hour(s) ${ms(toMs(args[2])).minutes} minute(s)`)
-                    }
-                } else if (args[0] === 'del') {
-                    try {
-                        const mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
-                        if (mentioned.length !== 0) {
-                            // if (mentioned === botNumber) return await reply('Format Salah!')
-                            dbpremium.splice(premium.getPremiumPosition(senderid, dbpremium), 1)
-                            fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
-                            await reply('Delete Done✅')
-                        }
-                    } catch {
-                        dbpremium.splice(premium.getPremiumPosition(args[1] + '@s.whatsapp.net', dbpremium), 1)
-                        fs.writeFileSync('./lib/database/user/premium.json', JSON.stringify(dbpremium))
-                        await reply('Delete Done✅')
-                    }
-                } else {
-                    await reply(`Kirim Format ${prefix}premium add/del @tagmember durasi`)
-                }
-                break
             case 'listpremium':
                 let listPremi = '「 *PREMIUM USER LIST* 」\n\n'
                 const deret = premium.getAllPremiumUser(dbpremium)
@@ -2197,6 +2236,26 @@ Prefix : ${singleprefix}
                 }
                 await conn.sendMessage(from, listPremi, text, { quoted: mek, contextInfo: { "mentionedJid": premium.getAllPremiumUser(dbpremium) } })
                 break
+            case 'listsewa':
+                let listsewa = '「 *SEWA GROUP LIST* 」\n\n'
+                let nomorListsewa = 0
+                const arraySewa = sewa.getAllSewa(dbsewa)
+                for (let i = 0; i < arraySewa.length; i++) {
+                    nomorListsewa++
+                    listsewa += `${nomorListsewa}. ${arraySewa[i].subject}\n`
+                    listsewa += `   - Group Id : ${arraySewa[i].id}\n`
+                    listsewa += `   - Sewa left : ${ms(arraySewa[i].expired - Date.now()).days} day(s) ${ms(arraySewa[i].expired - Date.now()).hours} hour(s) ${ms(arraySewa[i].expired - Date.now()).minutes} minute(s)\n`
+                    listsewa += `   - type sewa : ${arraySewa[i].type}\n\n`
+                }
+                reply(listsewa)
+                break
+            case 'premiumcheck':
+            case 'cekpremium':
+                if (!cekverify) return reply(`Mohon Maaf anda belum melakukan verifikasi sebagai user Staz-Bot, untuk verifikasi ketik ${prefix}verify`)
+                if (!isPremium) return reply('Anda Belum terdaftar sebagai member premium atau masa aktif premium habis, untuk upgrade ke premium hubungi owner bot')
+                const cekexpired = ms(premium.getPremiumExpired(senderid, dbpremium) - Date.now())
+                fakegroup(`「 *PREMIUM EXPIRE* 」\n\n➸ *ID*: ${senderid}\n➸ *Premium left*: ${cekexpired.days} day(s) ${cekexpired.hours} hour(s) ${cekexpired.minutes} minute(s)`)
+                break
             case 'artinama':
                 if (!q) return reply('isi namanya?')
                 try {
@@ -2208,6 +2267,32 @@ Prefix : ${singleprefix}
                     reply('Nama tidak ditemukan!')
                 }
                 break
+            case 'error':
+                if (!isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
+                if (args[0] === 'add') {
+                    dberror.push(args[1])
+                    fs.writeFileSync('./lib/database/bot/error.json', JSON.stringify(dberror))
+                    reply('Done. add error ke database!')
+                } else if (args[0] === 'del') {
+                    if (isNaN(args[1])) return reply('Pilih nomor berapa yang mau di hapus kak!')
+                    dberror.splice(args[1] - 1, 1)
+                    fs.writeFileSync('./lib/database/bot/error.json', JSON.stringify(dberror))
+                    reply('Done. delete error di database!')
+                } else {
+                    reply(`Ketik ${prefix}error add/del <angkanya>`)
+                }
+                break
+            case 'listerror':
+                let fiturError = '『 List command Error 』\n\n'
+                let totalError = 0
+                for (const error of dberror) {
+                    totalError++
+                    fiturError += `${totalError}. ${error}❌\n`
+                }
+                reply(fiturError)
+                break
+
+            // Feature fun
             case 'dadu':
                 if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
                 const dice = Math.floor(Math.random() * 6) + 1
