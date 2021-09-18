@@ -1715,14 +1715,12 @@ Prefix : ${singleprefix}
                     // console.log(totalchat[i].jid);
                     if (totalchat[i].jid.includes('@g.us')) {
                         const { name, count, jid, spam, message } = totalchat[i]
-                        // const { owner, participants } = totalchat[i].metadata
                         totalgrup += `${i + 1}. ${name}\n`
                         totalgrup += `  ╠ Id Group : ${jid}\n`
-                        totalgrup += `  ╠ Owner Group : ${totalchat[i].metadata.owner}\n`
-                        totalgrup += `  ╠ Total Member : ${totalchat[i].metadata.participants.length}\n`
                         totalgrup += `  ╠ Count : ${count}\n`
                         totalgrup += `  ╠ Message : ${message}\n`
                         totalgrup += `  ╚ Spam : ${spam}`
+                        console.log(totalchat[i]);
                     }
                 }
                 reply(totalgrup)
