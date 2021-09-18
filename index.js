@@ -1673,8 +1673,8 @@ Prefix : ${singleprefix}
                     await reply(`Kirim Format ${prefix}premium add/del @tagmember durasi`)
                 }
                 break
-            case 'clearmessage':
-            case 'clearmsg':
+            case 'clearallchat':
+            case 'clearallmsg':
                 if (!isOwner && !fromMe) return reply('Maaf ini fitur khusus owner kak!!')
                 for (let i in totalchat) {
                     if (totalchat[i].jid.includes('@g.us')) {
@@ -1707,6 +1707,30 @@ Prefix : ${singleprefix}
                 } catch {
                     fakegroup('LINK ERROR!')
                 }
+                break
+            case 'listgroup':
+                if (!isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
+                let totalgrup = '『 Total Group Bot 』\n\n'
+                for (let i = 0; i < totalchat.length; i++) {
+                    // console.log(totalchat[i].jid);
+                    if (totalchat[i].jid.includes('@g.us')) {
+                        const { name, count, jid, spam, message } = totalchat[i]
+                        const { owner, participants } = totalchat[i].metadata
+                        totalgrup += `${i + 1}. ${name}\n`
+                        totalgrup += `  ╠ Id Group : ${jid}\n`
+                        totalgrup += `  ╠ Owner Group : ${owner}\n`
+                        totalgrup += `  ╠ Total Member : ${participants.length}\n`
+                        totalgrup += `  ╠ Count : ${count}\n`
+                        totalgrup += `  ╠ Message : ${message}\n`
+                        totalgrup += `  ╚ Spam : ${spam}`
+                    }
+                }
+                reply(totalgrup)
+                break
+            case 'clearchat':
+                if (!isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
+                conn.modifyChat(args[0], 'clear')
+                reply('Done. clear chat in group')
                 break
 
             /* Feature Admin group */
