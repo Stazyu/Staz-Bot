@@ -562,6 +562,12 @@ Prefix : 「 ${prf} 」
 ► _${prefix}linkgroup_
 ► _${prefix}welcome_ <on/off>
 
+*</ADMIN-BOT>*
+► _${prefix}request_ <add/del> (Request fitur bot)
+► _${prefix}listrequest_ 
+► _${prefix}error_ <add/del> (Catat fitur error)
+► _${prefix}listerror_
+
 *</MAKER>*
 ► _${prefix}sticker_
 ► _${prefix}swm_ <author|packname>
@@ -1922,6 +1928,8 @@ Prefix : ${singleprefix}
                     const request_teks = args.join('').slice(4)
                     delRequest(request_teks)
                     reply(`Request fitur ${request_teks} telah di hapus!`)
+                } else {
+                    reply('Pilih add atau del kak!')
                 }
                 break
             case 'listrequest':
@@ -1954,6 +1962,8 @@ Prefix : ${singleprefix}
                     })
                     conn.sendMessage(from, `Limit @${mem.replace('@s.whatsapp.net', '')} telah di reset!`, text, { contextInfo: { "mentionedJid": [mem] } })
                     console.log('Mem');
+                } else {
+                    reply(`Ketik ${prefix}resetlimit all atau tag member untuk mereset limit!`)
                 }
                 break
 
@@ -2383,7 +2393,7 @@ Prefix : ${singleprefix}
                 }
                 break
             case 'error':
-                if (!isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
+                if (!isBotAdmins && !isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
                 if (args[0] === 'add') {
                     dberror.push(args[1])
                     fs.writeFileSync('./lib/database/bot/error.json', JSON.stringify(dberror))
