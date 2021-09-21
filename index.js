@@ -49,10 +49,14 @@ const { webp2gifFile } = require('./lib/webp2mp4')
 const time = moment().tz('Asia/Jakarta').format("HH:mm:ss")
 const { sleep, isAfk, cekafk, addafk } = require('./lib/offline')
 const { addVote, delVote } = require('./lib/vote')
-const { premium, sewa, userlimit } = require('./function/')
+const { premium, sewa, userlimit, requestfitur, notifbc, adminbot } = require('./function/')
 const { apakah, kapankah, bisakah, kelebihan, tipe, rate, ratenyaasu, sifat, hobby, watak, ratetampan, ratecantik, rategay, ratelesbi } = require('./lib/ratefun')
 const { addFilter, isFiltered } = require('./lib/msgfilter')
-const { addNotifBroadcast, checkIdBroadcast, getBroadcastPosition } = require('./function/notifbc')
+
+// Load Function
+const { addNotifBroadcast, checkIdBroadcast, getBroadcastPosition } = notifbc
+const { addrequest, delRequest, listRequest } = requestfitur
+const { addBotAdmin, delBotAdmin, getAllBotAdmins } = adminbot
 
 /// DATABASE ///
 let dbpremium = JSON.parse(fs.readFileSync('./lib/database/user/premium.json'))
@@ -60,10 +64,13 @@ let dbverify = JSON.parse(fs.readFileSync('./lib/database/user/verify.json'))
 let dbsewa = JSON.parse(fs.readFileSync('./lib/database/group/sewa.json'))
 let dbLimit = JSON.parse(fs.readFileSync('./lib/database/user/limit.json'))
 let dberror = JSON.parse(fs.readFileSync('./lib/database/bot/error.json'))
+let db_notifbc = JSON.parse(fs.readFileSync('./lib/database/user/notif_broadcast.json'))
+let dbRequest = JSON.parse(fs.readFileSync('./lib/database/bot/request.json'))
+
+let Botadmin = JSON.parse(fs.readFileSync('./lib/database/bot/admin.json'))
 let setting = JSON.parse(fs.readFileSync('./setting.json'))
 let voting = JSON.parse(fs.readFileSync('./lib/voting.json'))
 let afk = JSON.parse(fs.readFileSync('./lib/off.json'))
-let db_notifbc = JSON.parse(fs.readFileSync('./lib/database/user/notif_broadcast.json'))
 let welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
 let includes = [`play`]
 let not_includes = {
@@ -156,7 +163,6 @@ module.exports = conn = async (conn, mek) => {
         const ownerNumber = [`6281578794887@s.whatsapp.net`]
         const isGroup = from.endsWith('@g.us')
         let sender = isGroup ? mek.participant : mek.key.remoteJid
-        let senderid = mek.participant
         let fromMe = mek.key.fromMe
         // const isSelfNumber = config.NomorSELF
         // const isOwner = sender.id === isSelfNumber
@@ -171,6 +177,7 @@ module.exports = conn = async (conn, mek) => {
         const groupAdmins = isGroup ? getGroupAdmins(groupMembers) : ''
         const isBotGroupAdmins = groupAdmins.includes(botNumber) || false
         const isGroupAdmins = groupAdmins.includes(sender) || false
+        const isBotAdmins = Botadmin.includes(sender) || false
         const isVote = isGroup ? voting.includes(from) : false
         const conts = mek.key.fromMe ? conn.user.jid : conn.contacts[sender] || { notify: jid.replace(/@.+/, '') }
         const pushname = mek.key.fromMe ? conn.user.name : conts.notify || conts.vname || conts.name || '-'
@@ -200,7 +207,7 @@ module.exports = conn = async (conn, mek) => {
         }
 
         // Auto expired 
-        const isPremium = premium.checkPremiumUser(senderid, dbpremium)
+        const isPremium = premium.checkPremiumUser(sender, dbpremium)
         const isSewa = sewa.checkSewa(groupId, dbsewa)
 
         //MESS
@@ -217,7 +224,7 @@ module.exports = conn = async (conn, mek) => {
                 ownerGroup: '❌ Perintah ini hanya bisa di gunakan oleh owner group! ❌',
                 ownerBot: '❌ Perintah ini hanya bisa di gunakan oleh owner bot! ❌',
                 adminGroup: '❌ Perintah ini hanya bisa di gunakan oleh admin group! ❌',
-                adminBot: '❌ Perintah ini hanya bisa di gunakan oleh admin bot! ❌',
+                adminBot: 'Perintah ini hanya bisa di gunakan oleh admin bot!',
                 Botadmin: '❌ Perintah ini hanya bisa di gunakan ketika bot menjadi admin! ❌'
             }
         }
@@ -437,9 +444,9 @@ module.exports = conn = async (conn, mek) => {
 
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
-        if (!isGroup && !isCmd) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
+        if (!isGroup && !isCmd && !isSticker) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
         if (isCmd && isGroup) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
-        if (!isCmd && isGroup && !fromMe) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
+        if (!isCmd && isGroup && !isSticker && !fromMe) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
 
         // Command limit includes
         // let limit = false;
@@ -471,8 +478,8 @@ module.exports = conn = async (conn, mek) => {
         }
 
         // Create limit user & Add limit user
-        if (!isGroup && isCmd && limit) { userlimit.isLimit(sender, dbLimit), userlimit.isLimitAdd(sender, dbLimit) }
-        if (isGroup && isCmd && limit) { userlimit.isLimit(sender, dbLimit), userlimit.isLimitAdd(sender, dbLimit) }
+        if (!isGroup && isCmd && limit && !isPremium && !isOwner) { userlimit.isLimit(sender, dbLimit), userlimit.isLimitAdd(sender, dbLimit) }
+        if (isGroup && isCmd && limit && !isPremium && !isOwner) { userlimit.isLimit(sender, dbLimit), userlimit.isLimitAdd(sender, dbLimit) }
 
         if (isGroup && !isVote) {
             if (budy.toLowerCase() === 'vote') {
@@ -1713,7 +1720,6 @@ Prefix : ${singleprefix}
                 let totalgrup = '『 Total Group Bot 』\n\n'
                 let totalGrupp = 0
                 for (let i = 0; i < totalchat.length; i++) {
-                    // console.log(totalchat[i].jid);
                     if (totalchat[i].jid.includes('@g.us')) {
                         totalGrupp++
                         const { name, count, jid, spam, message } = totalchat[i]
@@ -1722,7 +1728,6 @@ Prefix : ${singleprefix}
                         totalgrup += `  ╠ Count : ${count}\n`
                         totalgrup += `  ╠ Message : ${message}\n`
                         totalgrup += `  ╚ Spam : ${spam}\n\n`
-                        // console.log(totalchat[i]);
                     }
                 }
                 reply(totalgrup)
@@ -1731,6 +1736,41 @@ Prefix : ${singleprefix}
                 if (!isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
                 conn.modifyChat(args[0], 'clear')
                 reply('Done. clear chat in group')
+                break
+            case 'adminbot':
+                // if (!isOwner && !fromMe) return reply('Maaf kak, fitur khusus owner bot!')
+                if (args[0] === 'add') {
+                    try {
+                        const mention = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                        addBotAdmin(mention)
+                        conn.sendMessage(from, `Berhasil menambahkan @${mention.replace('@s.whatsapp.net', '')} menjadi admin bot!`, text, { contextInfo: { "mentionedjid": mention } })
+                    } catch {
+                        const nomorMem = args[1]
+                        addBotAdmin(nomorMem + '@s.whatsapp.net')
+                        conn.sendMessage(from, `Berhasil menambahkan @${nomorMem} menjadi admin bot!`, text, { contextInfo: { "mentionedJid": nomorMem + '@s.whatsapp.net' } })
+                    }
+                } else if (args[0] === 'del') {
+                    try {
+                        const mention = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                        delBotAdmin(mention)
+                        conn.sendMessage(from, `Berhasil menghapus @${mention.replace('@s.whatsapp.net', '')} dari admin bot!`, text, { contextInfo: { "mentionedjid": mention } })
+                    } catch {
+                        const nomorMem = args[1]
+                        delBotAdmin(nomorMem + '@s.whatsapp.net')
+                        conn.sendMessage(from, `Berhasil menghapus @${nomorMem} dari admin bot`, text, { contextInfo: { "mentionedjid": mention } })
+                    }
+                }
+                break
+            case 'listadminbot':
+                let printAdmin = '「 List Admin Bot 」\n\n'
+                const listAdmin = getAllBotAdmins()
+                for (let i in listAdmin) {
+                    const date = new Date(listAdmin[i].date)
+                    printAdmin += `${parseInt(i) + 1}.\n No : ${listAdmin[i].id.replace('@s.whatsapp.net', '')}\n`
+                    printAdmin += ` Sejak : ${date.toLocaleString()}\n`
+                    // console.log(listAdmin[i]);
+                }
+                reply(printAdmin)
                 break
 
             /* Feature Admin group */
@@ -1835,7 +1875,7 @@ Prefix : ${singleprefix}
                 sendText(from, 'https://chat.whatsapp.com/' + linkgc)
                 break
             case 'welcome':
-                if (!isGroupAdmins) return reply('Maaf.. Fitur khusus admin grup!')
+                if (!isGroupAdmins && !isOwner) return reply('Maaf.. Fitur khusus admin grup!')
                 if (args.length < 1) return reply(`Kirim perintah ${prefix}welcome on atau off`)
                 if (args[0] === 'on') {
                     welcome.push(from)
@@ -1866,14 +1906,65 @@ Prefix : ${singleprefix}
                 await reply(`*「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cek_expired.days} day(s) ${cek_expired.hours} hour(s) ${cek_expired.minutes} minute(s)`)
                 break
 
+            /* Feature Admin Bot */
+            case 'laporerror':
+            case 'laporbug':
+                const teks_lapor = args.join(' ')
+                conn.sendMessage(ownerNumber, teks_lapor, text, { quoted: mek })
+                break
+            case 'request':
+                if (!isBotAdmins && !isOwner) return reply(mess.only.adminBot)
+                if (args[0] === 'add') {
+                    const request_teks = args.join(' ').slice(4)
+                    addrequest(sender, request_teks)
+                    reply(`Request fitur ${request_teks} telah ditambahkan..`)
+                } else if (args[0] === 'del') {
+                    const request_teks = args.join('').slice(4)
+                    delRequest(request_teks)
+                    reply(`Request fitur ${request_teks} telah di hapus!`)
+                }
+                break
+            case 'listrequest':
+                let print = '「 List Request Fitur 」\n\n'
+                let angka = 0
+                const list = listRequest()
+                for (const req of list) {
+                    angka++
+                    const date = new Date(req.date)
+                    print += `${angka}. ${req.req} | ${date.toLocaleDateString()}\n`
+                }
+                reply(print)
+                break
+            case 'resetlimit':
+                if (!isBotAdmins && !isOwner) return reply('Maaf kak, ini fitur khusus admin bot atau owner bot!')
+                if (args[0] === 'all') {
+                    let limit = []
+                    dbLimit = limit
+                    fs.writeFileSync('./lib/database/user/limit.json', JSON.stringify(dbLimit))
+                    conn.sendMessage(from, 'Limit user telah di reset!', text)
+                    console.log('Aman');
+                } else if (mek.message.extendedTextMessage.contextInfo.mentionedJid[0] != null) {
+                    const mem = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                    const limit = 0
+                    Object.keys(dbLimit).forEach((i) => {
+                        if (mem === dbLimit[i].id) {
+                            dbLimit[i].limit = limit
+                            fs.writeFileSync('./lib/database/user/limit.json', JSON.stringify(dbLimit))
+                        }
+                    })
+                    conn.sendMessage(from, `Limit @${mem.replace('@s.whatsapp.net', '')} telah di reset!`, text, { contextInfo: { "mentionedJid": [mem] } })
+                    console.log('Mem');
+                }
+                break
+
             /* Feature Download */
             case 'play':
                 if (args.length === 0) return reply(`Kirim perintah *${prefix}play* _Judul lagu yang akan dicari_`)
-                var srch = args.join('')
+                var srch = args.join(' ')
                 aramas = await yts(srch);
                 aramat = aramas.all
-                var mulaikah = aramat[0].url
                 try {
+                    var mulaikah = aramat[0].url
                     yta(mulaikah)
                         .then((res) => {
                             const { dl_link, thumb, title, filesizeF, filesize } = res

@@ -1,3 +1,6 @@
 exports.premium = require('./premium')
 exports.sewa = require('./sewa')
 exports.userlimit = require('./userlimit')
+exports.requestfitur = require('./requestfitur')
+exports.notifbc = require('./notifbc')
+exports.adminbot = require('./adminbot')
