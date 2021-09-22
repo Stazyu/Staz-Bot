@@ -1924,7 +1924,7 @@ Prefix : ${singleprefix}
                     addrequest(sender, request_teks)
                     reply(`Request fitur ${request_teks} telah ditambahkan..`)
                 } else if (args[0] === 'del') {
-                    const request_teks = args.join('').slice(4)
+                    const request_teks = args.join(' ').slice(4)
                     delRequest(request_teks)
                     reply(`Request fitur ${request_teks} telah di hapus!`)
                 } else {
