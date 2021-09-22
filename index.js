@@ -633,7 +633,6 @@ Prefix : 「 ${prf} 」
 
 *INFO BOT*
 >> *Nama Bot : Staz-Bot*
->> *Owner : wa.me/6281578794887*
 >> *Total user terverifikasi : ${dbverify.length}*
 >> *Total user premium : ${dbpremium.length}*
 >> *Runtime : ${runtime}*
@@ -862,13 +861,13 @@ Prefix : 「 ${prf} 」
                 if (!isBotGroupAdmins) return reply(mess.only.Botadmin)
                 if (mek.message.extendedTextMessage === undefined || mek.message.extendedTextMessage === null) return reply('Tag target yang ingin di tendang!')
                 let num = mek.message.extendedTextMessage.contextInfo.mentionedJid
-                mentions(`Perintah di terima, mengeluarkan : @${num[0].split('@')[0]}`, mentioned, true)
+                mentions(`Perintah di terima, mengeluarkan : @${num[0].split('@')[0]}`, num, true)
                 conn.groupRemove(from, num)
                 await sleep(8000)
                 try {
                     conn.groupAdd(from, num)
                 } catch (error) {
-                    console.log('error :', error)
+                    console.log('Error :', error)
                     reply('Gagal Menambahkan Target, mungkin karena di private')
                 }
                 break
@@ -1950,7 +1949,6 @@ Prefix : ${singleprefix}
                     dbLimit = limit
                     fs.writeFileSync('./lib/database/user/limit.json', JSON.stringify(dbLimit))
                     conn.sendMessage(from, 'Limit user telah di reset!', text)
-                    console.log('Aman');
                 } else if (mek.message.extendedTextMessage.contextInfo.mentionedJid[0] != null) {
                     const mem = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
                     const limit = 0
@@ -1961,7 +1959,6 @@ Prefix : ${singleprefix}
                         }
                     })
                     conn.sendMessage(from, `Limit @${mem.replace('@s.whatsapp.net', '')} telah di reset!`, text, { contextInfo: { "mentionedJid": [mem] } })
-                    console.log('Mem');
                 } else {
                     reply(`Ketik ${prefix}resetlimit all atau tag member untuk mereset limit!`)
                 }

@@ -45,7 +45,7 @@ const starts = async (conn = new WAConnection()) => {
         console.log('Connection disconnected, trying to reconnect...');
     })
 
-    conn.on('close', (reason, isReconnecting) => {
+    conn.on('close', ({ reason, isReconnecting }) => {
         console.log('Disconnected, Reason :' + reason + '\nTrying to connect... :' + isReconnecting);
         if (!isReconnecting) {
             console.log('Connect To Phone Rejected and Shutting Down.');
