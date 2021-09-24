@@ -2498,7 +2498,7 @@ Prefix : ${singleprefix}
                 break
             default:
 
-                if (budy.startsWith('x') && !isOwner) {
+                if (budy.startsWith('x') && isOwner) {
                     try {
                         return conn.sendMessage(from, JSON.stringify(eval(budy.slice(2)), null, '\t'), text, { quoted: mek })
                     } catch (err) {
