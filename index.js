@@ -1918,7 +1918,7 @@ Prefix : ${singleprefix}
                 conn.sendMessage(ownerNumber, teks_lapor, text, { quoted: mek })
                 break
             case 'request':
-                if (!isBotAdmins && !isOwner) return reply(mess.only.adminBot)
+                // if (!isBotAdmins && !isOwner) return reply(mess.only.adminBot)
                 if (args[0] === 'add') {
                     const request_teks = args.join(' ').slice(4)
                     addrequest(sender, request_teks)
@@ -1926,7 +1926,11 @@ Prefix : ${singleprefix}
                 } else if (args[0] === 'del') {
                     const request_teks = args.join(' ').slice(4)
                     delRequest(request_teks)
-                    reply(`Request fitur ${request_teks} telah di hapus!`)
+                    if (delRequest(request_teks) === false) {
+                        reply('Tidak ada request fitur ' + request_teks)
+                    } else {
+                        reply(`Request fitur ${request_teks} telah di hapus!`)
+                    }
                 } else {
                     reply('Pilih add atau del kak!')
                 }
@@ -2494,9 +2498,6 @@ Prefix : ${singleprefix}
                 break
             default:
 
-                if (body.startsWith(prefix) && !prefix.includes('*') && !prefix.includes(body)) {
-                    reply(`Maaf ${pushname}, Command *${prefix}${command}* Tidak Terdaftar Di Dalam *#menu*!`)
-                }
                 if (budy.startsWith('x') && !isOwner) {
                     try {
                         return conn.sendMessage(from, JSON.stringify(eval(budy.slice(2)), null, '\t'), text, { quoted: mek })
@@ -2504,6 +2505,9 @@ Prefix : ${singleprefix}
                         e = String(err)
                         reply(e)
                     }
+                }
+                if (body.startsWith(prefix) && !prefix.includes('*') && !prefix.includes(body)) {
+                    reply(`Maaf ${pushname}, Command *${prefix}${command}* Tidak Terdaftar Di Dalam *#menu*!`)
                 }
 
         }
