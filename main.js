@@ -10,6 +10,8 @@ const { banner, start, success } = require('./lib/functions')
 const { color } = require('./lib/color')
 const { getBuffer } = require('./lib/functions')
 
+let dbWelcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
+
 require('./index.js')
 nocache('./index.js', (module) => console.log(`${module} is now updated!`))
 require('./setting.json')
@@ -54,10 +56,12 @@ const starts = async (conn = new WAConnection()) => {
 
     conn.on('group-participants-update', async (group) => {
         const welcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
-        if (!welcome.includes(group.jid)) return
+        for (let i in welcome) {
+            if (!welcome[i].id.includes(group.jid)) return
+        }
         try {
             const mdata = await conn.groupMetadata(group.jid)
-            // console.log(group)
+            console.log(group.action)
             if (group.action == 'add') {
                 num = group.participants[0]
                 try {
@@ -65,9 +69,16 @@ const starts = async (conn = new WAConnection()) => {
                 } catch {
                     ppimg = 'https://i0.wp.com/www.gambarunik.id/wp-content/uploads/2019/06/Top-Gambar-Foto-Profil-Kosong-Lucu-Tergokil-.jpg'
                 }
-                const teks = capt_welcome(num, mdata.subject)
+                const nomor = num.replace('@s.whatsapp.net', '')
                 let buff = await getBuffer(ppimg)
-                conn.sendMessage(mdata.id, buff, MessageType.image, { caption: teks, contextInfo: { "mentionedJid": [num] } })
+                const groupText = getTextWelcome(group.jid)
+                if (groupText.text != "") {
+                    const text = (groupText.text.replace('@user', `@${nomor}`).replace('@grup', mdata.subject))
+                    conn.sendMessage(mdata.id, buff, MessageType.image, { caption: text, contextInfo: { "mentionedJid": [num] } })
+                } else {
+                    const teks = capt_welcome(num, mdata.subject)
+                    conn.sendMessage(mdata.id, buff, MessageType.image, { caption: teks, contextInfo: { "mentionedJid": [num] } })
+                }
             } else if (group.action == 'remove') {
                 num = group.participants[0]
                 try {
@@ -127,8 +138,6 @@ NewMem Tolong di Isi ya😊
 
 *>>Gender :*
 
-*>>Status Hubungan:*
-
 Salam Kenal👋
 
 ※JanganLupaBacaDeskripsi😊
@@ -138,4 +147,19 @@ Salam Kenal👋
 function capt_left(jid, name) {
     return `Selamat Tinggal @${jid.replace('@s.whatsapp.net', '')} di Grup ${name} 👋. Semoga Sehat selalu di sana`
 }
+
+function getTextWelcome(from) {
+    const dbWelcome = JSON.parse(fs.readFileSync('./lib/database/group/welcome.json'))
+    let result = null
+    Object.keys(dbWelcome).forEach((i) => {
+        if (dbWelcome[i].id === from) {
+            result = dbWelcome[i]
+        } else {
+            result = null
+        }
+    })
+
+    return result
+}
+
 starts()

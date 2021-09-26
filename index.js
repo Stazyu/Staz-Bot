@@ -561,6 +561,7 @@ Prefix : 「 ${prf} 」
 ► _${prefix}hidetag_ <Teks>
 ► _${prefix}linkgroup_
 ► _${prefix}welcome_ <on/off>
+► _${prefix}setwelcome_ <teksnya> (Untuk tag user pake @user, nama grup pake @grup)
 
 *</ADMIN-BOT>*
 ► _${prefix}request_ <add/del> (Request fitur bot)
@@ -607,6 +608,7 @@ Prefix : 「 ${prf} 」
 ► _${prefix}igstory_ <username>
 ► _${prefix}twitter_ <link>
 ► _${prefix}tiktok_ <link>
+► _${prefix}tiktoknowm_ <link>
 ► _${prefix}tiktokaudio_ <link>
 ► _${prefix}fb_ <link>
 ► _${prefix}brainly_ <query>
@@ -624,6 +626,8 @@ Prefix : 「 ${prf} 」
 ► _${prefix}ping_
 ► _${prefix}math_
 ► _${prefix}notifbc_ <off/on>
+► _${prefix}error_ <add/del> <teks errornya>
+► _${prefix}laporerror/laporbug_ <isi teksnya>
 
 *</VOTE>*
 ► _${prefix}voting_
@@ -633,6 +637,7 @@ Prefix : 「 ${prf} 」
 
 *INFO BOT*
 >> *Nama Bot : Staz-Bot*
+>> *Owner-Bot : wa.me/6281578794887*
 >> *Total user terverifikasi : ${dbverify.length}*
 >> *Total user premium : ${dbpremium.length}*
 >> *Runtime : ${runtime}*
@@ -1879,11 +1884,35 @@ Prefix : ${singleprefix}
                 const linkgc = await conn.groupInviteCode(from)
                 sendText(from, 'https://chat.whatsapp.com/' + linkgc)
                 break
+            case 'setwelcome':
+                if (!isGroupAdmins && !isOwner) return reply('Maaf.. Fitur khusus admin grup!')
+                if (args.length < 1) return reply(`Kirim perintah ${prefix}setwelcome [Sapaan welcome], contoh: Selamat datang @user di grup @namagrup (@user sama @namagrup jangan di ganti!)`)
+                const welcomeText = args.join(' ')
+                for (let i in welcome) {
+                    if (welcome[i].id == from) {
+                        welcome[i].text = welcomeText
+                        fs.writeFileSync('./lib/database/group/welcome.json', JSON.stringify(welcome))
+                    }
+                }
+                reply('Welcome/Sapaan di grup telah di ganti dengan ' + welcomeText)
+                break
+            case 'setwelcomedefault':
+                if (!isGroupAdmins && !isOwner) return reply('Maaf.. Fitur khusus admin grup!')
+                const defaultWelcomeText = ""
+                for (let i in welcome) {
+                    if (welcome[i].id == from) {
+                        welcome[i].text = defaultWelcomeText
+                        fs.writeFileSync('./lib/database/group/welcome.json', JSON.stringify(welcome))
+                    }
+                }
+                reply(`Welcome/Sapaan di grup ini telah di ganti ke default!`)
+                break
             case 'welcome':
                 if (!isGroupAdmins && !isOwner) return reply('Maaf.. Fitur khusus admin grup!')
                 if (args.length < 1) return reply(`Kirim perintah ${prefix}welcome on atau off`)
                 if (args[0] === 'on') {
-                    welcome.push(from)
+                    let obj = { id: from, text: "" }
+                    welcome.push(obj)
                     fs.writeFileSync('./lib/database/group/welcome.json', JSON.stringify(welcome))
                     reply('Fitur Welcome telah diaktifkan')
                 } else if (args[0] === 'off') {
@@ -2080,7 +2109,7 @@ Prefix : ${singleprefix}
                 break
             case 'image':
                 if (args.length < 1) return reply('Masukan teks!')
-                const gimg = args.join('');
+                const gimg = args.join(' ');
                 reply(mess.wait)
                 gis(gimg, async (error, result) => {
                     n = result
@@ -2089,6 +2118,21 @@ Prefix : ${singleprefix}
                 });
                 break
             case 'tiktok':
+                if (!isUrl(args[0]) && !args[0].includes('tiktok.com')) return reply(mess.Iv)
+                if (!q) return fakegroup('Linknya?')
+                reply(mess.wait)
+                hx.ttdownloader(`${args[0]}`)
+                    .then(result => {
+                        const { wm, nowm, audio } = result
+                        axios.get(`https://tinyurl.com/api-create.php?url=${wm}`)
+                            .then(async (a) => {
+                                me = `*Link* : ${a.data}`
+                                conn.sendMessage(from, { url: `${wm}` }, video, { mimetype: 'video/mp4', quoted: mek, caption: me })
+                            })
+                    })
+                    .catch(e => console.log(e))
+                break
+            case 'tiktoknowm':
                 if (!isUrl(args[0]) && !args[0].includes('tiktok.com')) return reply(mess.Iv)
                 if (!q) return fakegroup('Linknya?')
                 reply(mess.wait)
@@ -2194,7 +2238,9 @@ Prefix : ${singleprefix}
                 }
                 break
 
-            // Feature Anime
+            /**
+             * Feature Anime
+             */
             case 'anime':
                 reply(mess.wait)
                 fetch('https://raw.githubusercontent.com/pajaar/grabbed-results/master/pajaar-2020-gambar-anime.txt')
@@ -2223,7 +2269,7 @@ Prefix : ${singleprefix}
                         reply(err)
                     })
                 } else {
-                    reply('Foto aja kak')
+                    reply('Foto kak, tidak support video!')
                 }
                 break
             case 'verify':
@@ -2269,7 +2315,9 @@ Prefix : ${singleprefix}
                 }
                 break
 
-            // Feature Other
+            /**
+             * Feature Other
+             */
             case 'waktu':
                 reply(`Waktu Indonesia Barat: *${moment().utcOffset('+0700').format('HH:mm')}* WIB \nWaktu Indonesia Tengah: *${moment().utcOffset('+0800').format('HH:mm')}* WITA \nWaktu Indonesia Timur: *${moment().utcOffset('+0900').format('HH:mm')}* WIT`)
                 break
@@ -2394,7 +2442,7 @@ Prefix : ${singleprefix}
                 }
                 break
             case 'error':
-                if (!isBotAdmins && !isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
+                // if (!isBotAdmins && !isOwner && !fromMe) return reply('Maaf fitur khusus owner kak!')
                 if (args[0] === 'add') {
                     dberror.push(args[1])
                     fs.writeFileSync('./lib/database/bot/error.json', JSON.stringify(dberror))
@@ -2418,7 +2466,9 @@ Prefix : ${singleprefix}
                 reply(fiturError)
                 break
 
-            // Feature fun
+            /**
+             * Feature Fun
+             */
             case 'dadu':
                 if (!isGroup) return reply('Perintah ini hanya bisa di gunakan dalam group!')
                 const dice = Math.floor(Math.random() * 6) + 1
@@ -2502,8 +2552,10 @@ Prefix : ${singleprefix}
                     try {
                         return conn.sendMessage(from, JSON.stringify(eval(budy.slice(2)), null, '\t'), text, { quoted: mek })
                     } catch (err) {
-                        e = String(err)
-                        reply(e)
+                        let er = String(err)
+                        if (!er.includes("this.isZero")) {
+                            console.log(color('[ERROR]', 'red'), err)
+                        }
                     }
                 }
                 if (body.startsWith(prefix) && !prefix.includes('*') && !prefix.includes(body)) {
