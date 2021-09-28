@@ -216,16 +216,16 @@ module.exports = conn = async (conn, mek) => {
             success: '✔️ Berhasil ✔️',
             botout: 'Terima kasih sudah menyewa Staz-Bot, bila mau berlangganan chat owner bot',
             error: {
-                stick: '❌ Gagal, terjadi kesalahan saat mengkonversi gambar ke sticker ❌',
-                Iv: '❌ Link tidak valid ❌'
+                stick: 'Gagal, terjadi kesalahan saat mengkonversi gambar ke sticker',
+                Iv: 'Link tidak valid'
             },
             only: {
-                group: '❌ Perintah ini hanya bisa di gunakan dalam group! ❌',
-                ownerGroup: '❌ Perintah ini hanya bisa di gunakan oleh owner group! ❌',
-                ownerBot: '❌ Perintah ini hanya bisa di gunakan oleh owner bot! ❌',
-                adminGroup: '❌ Perintah ini hanya bisa di gunakan oleh admin group! ❌',
+                group: 'Perintah ini hanya bisa di gunakan dalam group!',
+                ownerGroup: 'Perintah ini hanya bisa di gunakan oleh owner group!',
+                ownerBot: 'Perintah ini hanya bisa di gunakan oleh owner bot!',
+                adminGroup: 'Perintah ini hanya bisa di gunakan oleh admin group!',
                 adminBot: 'Perintah ini hanya bisa di gunakan oleh admin bot!',
-                Botadmin: '❌ Perintah ini hanya bisa di gunakan ketika bot menjadi admin! ❌'
+                botAdmin: 'Perintah ini hanya bisa di gunakan ketika bot menjadi admin!'
             }
         }
 
@@ -444,9 +444,9 @@ module.exports = conn = async (conn, mek) => {
 
         // Log Message & Command
         if (!isGroup && isCmd) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
-        if (!isGroup && !isCmd && !isSticker) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
+        if (!isGroup && !isCmd && !isSticker && !isMedia) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'args :', color(args.length))
         if (isCmd && isGroup) console.log('\x1b[1;31m~\x1b[1;37m>', '[\x1b[1;32mEXEC\x1b[1;37m]', time, color(command), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
-        if (!isCmd && isGroup && !isSticker && !fromMe) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
+        if (!isCmd && isGroup && !isSticker && !isMedia && !fromMe) console.log('\x1b[1;34m~\x1b[1;37m>', '[\x1b[1;34mTEXT\x1b[1;37m]', time, color(mek.message.conversation || mek.message.extendedTextMessage.text), 'from', color(sender.split('@')[0]), 'in', color(groupName), 'args :', color(args.length))
 
         // Command limit includes
         // let limit = false;
@@ -562,6 +562,8 @@ Prefix : 「 ${prf} 」
 ► _${prefix}linkgroup_
 ► _${prefix}welcome_ <on/off>
 ► _${prefix}setwelcome_ <teksnya> (Untuk tag user pake @user, nama grup pake @grup)
+► _${prefix}promote_ <tag membernya>
+► _${prefix}demote_ <tag membernya>
 
 *</ADMIN-BOT>*
 ► _${prefix}request_ <add/del> (Request fitur bot)
@@ -1939,6 +1941,38 @@ Prefix : ${singleprefix}
                 const cek_expired = ms(sewa.getSewaExpired(groupId, dbsewa) - Date.now())
                 await reply(`*「 SEWA EXPIRED 」*\n\n➸ *ID*: ${groupId}\n➸ *Sewa left*: ${cek_expired.days} day(s) ${cek_expired.hours} hour(s) ${cek_expired.minutes} minute(s)`)
                 break
+            case 'promote':
+                if (!isGroupAdmins) return reply(mess.only.adminGroup)
+                if (!isBotGroupAdmins) return reply(mess.only.botAdmin)
+                try {
+                    const mention = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                    conn.groupMakeAdmin(from, [mention])
+                    conn.sendMessage(from, `Berhasil promote @${mention.replace('@s.whatsapp.net', '')}`, text, { quoted: mek, contextInfo: { "mentionedJid": [mention] } })
+                } catch {
+                    reply(`Error.. Silahkan ketik ${prefix}promote tag member yang mau di jadikan Admin Grup!`)
+                }
+                break
+            case 'demote':
+                if (!isGroupAdmins) return reply(mess.only.adminGroup)
+                if (!isBotGroupAdmins) return reply(mess.only.botAdmin)
+                try {
+                    const mention = mek.message.extendedTextMessage.contextInfo.mentionedJid[0]
+                    conn.groupDemoteAdmin(from, [mention])
+                    conn.sendMessage(from, `Berhasil demote @${mention.replace('@s.whatsapp.net', '')}`, text, { quoted: mek, contextInfo: { "mentionedJid": [mention] } })
+                } catch {
+                    reply(`Error.. Silahkan ketik ${prefix}demote tag member yang mau di turunkan jabatan grupnya!`)
+                }
+                break
+            case 'tutupgrup':
+                if (!isGroupAdmins) return reply(mess.only.adminGroup)
+                if (!isBotGroupAdmins) return reply(mess.only.botAdmin)
+                conn.groupSettingChange(from, "announcement", true)
+                break
+            case 'bukagrup':
+                if (!isGroupAdmins) return reply(mess.only.adminGroup)
+                if (!isBotGroupAdmins) return reply(mess.only.botAdmin)
+                conn.groupSettingChange(from, "announcement", false)
+                break
 
             /* Feature Admin Bot */
             case 'laporerror':
@@ -1954,11 +1988,11 @@ Prefix : ${singleprefix}
                     reply(`Request fitur ${request_teks} telah ditambahkan..`)
                 } else if (args[0] === 'del') {
                     const request_teks = args.join(' ').slice(4)
-                    delRequest(request_teks)
-                    if (delRequest(request_teks) === false) {
-                        reply('Tidak ada request fitur ' + request_teks)
-                    } else {
+                    if (delRequest(request_teks) != false) {
                         reply(`Request fitur ${request_teks} telah di hapus!`)
+                        delRequest(request_teks)
+                    } else {
+                        reply('Tidak ada request fitur ' + request_teks)
                     }
                 } else {
                     reply('Pilih add atau del kak!')
@@ -2290,6 +2324,7 @@ Prefix : ${singleprefix}
                 if (obj === true) {
                     return reply('Kamu sudah melakukan verifikasi') // BAKAL RESPON JIKA NO UDAH ADA
                 } else {
+                    const limit = userlimit.checkLimit(sender, dbLimit)
                     // const mentah = await checkNumberStatus(nonye) // PENDAFTARAN
                     const verif = (`┌─「 *VERIFY-SUCCES* 」
 │
@@ -2298,7 +2333,7 @@ Prefix : ${singleprefix}
 ├ *NOMOR : [@${nonye.replace(/[@s.whatsapp.net]/g, '')}]*
 ├ *API : wa.me/${nonye.replace('@s.whatsapp.net', '')}*
 ├ *WAKTU : ${moment().format('DD/MM/YY HH:mm:ss')}*
-├ *BATAS PEMAKAIAN : Unlimited/Day*
+├ *BATAS PEMAKAIAN : ${limit * 2}/Day*
 │
 ├ Untuk melihat menu bot kirim ${prefix}menu
 │ Total User yang sudah verifikasi ${dbverify.length}
@@ -2431,7 +2466,7 @@ Prefix : ${singleprefix}
                 fakegroup(`「 *PREMIUM EXPIRE* 」\n\n➸ *ID*: ${senderid}\n➸ *Premium left*: ${cekexpired.days} day(s) ${cekexpired.hours} hour(s) ${cekexpired.minutes} minute(s)`)
                 break
             case 'artinama':
-                if (!q) return reply('isi namanya?')
+                if (!q) return reply(`Format salah. Silahkan ketik ${prefix}artinama <nama kamu> abaikan simbol < >`)
                 try {
                     const artinm = await axios.get(`https://api.zeks.xyz/api/artinama?apikey=${zeksapi}&nama=${q}`)
                     const result = artinm.data.result

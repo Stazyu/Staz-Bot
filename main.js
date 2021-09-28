@@ -21,6 +21,7 @@ const starts = async (conn = new WAConnection()) => {
     conn.logger.level = 'warn'
     conn.version = [2, 2123, 8]
     conn.browserDescription = ['STAZBOT', 'Chrome', '3.0']
+    conn.autoReconnect = 2
     console.log(banner.string)
     conn.on('qr', () => {
         console.log(color('[', 'white'), color('!', 'red'), color(']', 'white'), color(' Scan bang'))

@@ -20,12 +20,15 @@ function addrequest(from, teks) {
  */
 
 function delRequest(teks) {
+	let del = false
 	Object.keys(dbRequest).forEach((i) => {
 		if (teks === dbRequest[i].req) {
 			dbRequest.splice(i, 1)
 			fs.writeFileSync('./lib/database/bot/request.json', JSON.stringify(dbRequest))
+			del = true
 		}
 	})
+	return del
 }
 
 /**
