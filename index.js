@@ -751,25 +751,26 @@ Prefix : 「 ${prf} 」
             case 'ownermenu':
                 if (!isOwner && !fromMe) return reply('Khusus Owner kak!')
                 fakestatus(`► _${prefix}off_
-            ► _${prefix}on_
-            ► _${prefix}status_
-            ► _${prefix}self_
-            ► _${prefix}public_
-            ► _${prefix}setthumb_
-            ► _${prefix}settarget_
-            ► _${prefix}setfakeimg_
-            ► _${prefix}setreply_
-            ► _${prefix}inspect_
-            ► _${prefix}join_
-            ► _${prefix}caripesan_ <query>
-            ► _${prefix}get_
-            ► _${prefix}term_ <code>
-            ► _x_ <code>
-            ► _${prefix}upswteks_
-            ► _${prefix}upswimage_
-            ► _${prefix}upswvideo_
-            ► _${prefix}premium_ <add/del tag/no duration>
-            `)
+► _${prefix}on_
+► _${prefix}status_
+► _${prefix}self_
+► _${prefix}public_
+► _${prefix}setthumb_
+► _${prefix}settarget_
+► _${prefix}setfakeimg_
+► _${prefix}setreply_
+► _${prefix}inspect_
+► _${prefix}join_
+► _${prefix}caripesan_ <query>
+► _${prefix}get_
+► _${prefix}term_ <code>
+► _x_ <code>
+► _${prefix}upswteks_
+► _${prefix}upswimage_
+► _${prefix}upswvideo_
+► _${prefix}premium_ <add/del tag/no duration>
+► _${prefix}clearallmsg_ 
+`)
                 break
             case 'tagmenu':
                 if (!isGroupAdmins) return reply('Khusus untuk admin grup')
