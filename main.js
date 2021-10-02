@@ -46,13 +46,13 @@ const starts = async (conn = new WAConnection()) => {
 
     conn.on('ws-close', async () => {
         console.log('Connection disconnected, trying to reconnect...');
-        await conn.connect()
+        await conn.connect({ timeoutMs: 30 * 1000 })
     })
 
     conn.on('close', async ({ reason, isReconnecting }) => {
         console.log('Disconnected, Reason :' + reason + '\nTrying to connect... :' + isReconnecting);
         if (reason === 'timed out') {
-            await conn.connect()
+            await conn.connect({ timeoutMs: 30 * 1000 })
             console.log('Timed Out. Reconnecting again..');
         }
         // if (!isReconnecting) {
