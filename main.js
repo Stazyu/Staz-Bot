@@ -21,7 +21,7 @@ const starts = async (conn = new WAConnection()) => {
     conn.logger.level = 'warn'
     conn.version = [2, 2123, 8]
     conn.browserDescription = ['STAZBOT', 'Chrome', '3.0']
-    conn.autoReconnect = 2
+    conn.autoReconnect = 1
     console.log(banner.string)
     conn.on('qr', () => {
         console.log(color('[', 'white'), color('!', 'red'), color(']', 'white'), color(' Scan bang'))
@@ -46,13 +46,18 @@ const starts = async (conn = new WAConnection()) => {
 
     conn.on('ws-close', async () => {
         console.log('Connection disconnected, trying to reconnect...');
+        await conn.connect()
     })
 
     conn.on('close', ({ reason, isReconnecting }) => {
         console.log('Disconnected, Reason :' + reason + '\nTrying to connect... :' + isReconnecting);
-        if (!isReconnecting) {
-            console.log('Connect To Phone Rejected and Shutting Down.');
+        if (reason === 'timed out') {
+            await conn.connect()
+            console.log('Timed Out. Reconnecting again..');
         }
+        // if (!isReconnecting) {
+        //     console.log('Connect To Phone Rejected and Shutting Down.');
+        // }
     })
 
     conn.on('group-participants-update', async (group) => {
