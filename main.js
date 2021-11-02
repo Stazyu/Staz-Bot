@@ -19,7 +19,7 @@ nocache('./setting.json', (module) => console.log(`${module} is now updated!`))
 
 const starts = async (conn = new WAConnection()) => {
     conn.logger.level = 'warn'
-    conn.version = [2, 2123, 8]
+    conn.version = [2, 2142, 12]
     conn.browserDescription = ['STAZBOT', 'Chrome', '3.0']
     conn.autoReconnect = 1
     console.log(banner.string)
