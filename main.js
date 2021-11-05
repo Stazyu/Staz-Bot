@@ -78,7 +78,7 @@ const starts = async (conn = new WAConnection()) => {
                 const nomor = num.replace('@s.whatsapp.net', '')
                 let buff = await getBuffer(ppimg)
                 const groupText = getTextWelcome(group.jid)
-                if (groupText.text != "") {
+                if (groupText.text != null) {
                     const text = (groupText.text.replace('@user', `@${nomor}`).replace('@grup', mdata.subject))
                     conn.sendMessage(mdata.id, buff, MessageType.image, { caption: text, contextInfo: { "mentionedJid": [num] } })
                 } else {
